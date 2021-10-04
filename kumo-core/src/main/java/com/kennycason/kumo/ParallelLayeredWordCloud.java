@@ -1,13 +1,14 @@
 package com.kennycason.kumo;
 
-import com.kennycason.kumo.exception.KumoException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import android.graphics.Rect;
 
-import java.awt.*;
+import com.kennycason.kumo.exception.KumoException;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+
+import timber.log.Timber;
 
 /**
  * A LayeredWordCloud which can process each layer in its own Thread, thus
@@ -16,13 +17,13 @@ import java.util.concurrent.*;
  * @author &#64;wolfposd
  */
 public class ParallelLayeredWordCloud extends LayeredWordCloud {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ParallelLayeredWordCloud.class);
+    private final String TAG = "ParallelLayeredWordClou";
 
     private final List<Future<?>> executorFutures = new ArrayList<>();
 
     private final ExecutorService executorservice;
 
-    public ParallelLayeredWordCloud(final int layers, final Dimension dimension, final CollisionMode collisionMode) {
+    public ParallelLayeredWordCloud(final int layers, final Rect dimension, final CollisionMode collisionMode) {
         super(layers, dimension, collisionMode);
         executorservice = Executors.newFixedThreadPool(layers);
     }
@@ -40,7 +41,7 @@ public class ParallelLayeredWordCloud extends LayeredWordCloud {
     @Override
     public void build(final int layer, final List<WordFrequency> wordFrequencies) {
         final Future<?> completionFuture = executorservice.submit(() -> {
-            LOGGER.info("Starting to build WordCloud Layer {} in new Thread", layer);
+            Timber.tag(TAG).i("Starting to build WordCloud Layer %d in new Thread", layer);
             super.build(layer, wordFrequencies);
         });
 
@@ -101,13 +102,13 @@ public class ParallelLayeredWordCloud extends LayeredWordCloud {
         // we're not shutting down the executor as this would render it
         // non-functional afterwards. this way it can still be used if we
         // plan on building another layer on top of the previous ones
-        LOGGER.info("Awaiting Termination of Executors");
+        Timber.tag(TAG).i("Awaiting Termination of Executors");
         for (int i = 0; i < executorFutures.size(); i++) {
             final Future<?> future = executorFutures.get(i);
             try {
                 // cycle through all futures, invoking get() will block
                 // current task until the future can return a result
-                LOGGER.info("Performing get on Future:" + (i + 1) + "/" + executorFutures.size());
+                Timber.tag(TAG).i("Performing get on Future:" + (i + 1) + "/" + executorFutures.size());
                 future.get();
 
             } catch (InterruptedException | ExecutionException e) {
@@ -115,7 +116,7 @@ public class ParallelLayeredWordCloud extends LayeredWordCloud {
             }
         }
         executorFutures.clear();
-        LOGGER.info("Termination Complete, Processing to File now");
+        Timber.tag(TAG).i("Termination Complete, Processing to File now");
     }
 
     /**

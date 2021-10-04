@@ -1,13 +1,21 @@
 package com.kennycason.kumo;
 
+import static com.kennycason.kumo.Word.getPaint;
+
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Point;
+import android.graphics.Rect;
+import android.graphics.Typeface;
+
 import com.kennycason.kumo.bg.Background;
 import com.kennycason.kumo.bg.RectangleBackground;
 import com.kennycason.kumo.collide.RectanglePixelCollidable;
 import com.kennycason.kumo.collide.checkers.CollisionChecker;
 import com.kennycason.kumo.collide.checkers.RectangleCollisionChecker;
 import com.kennycason.kumo.collide.checkers.RectanglePixelCollisionChecker;
-import com.kennycason.kumo.exception.KumoException;
-import com.kennycason.kumo.font.FontWeight;
 import com.kennycason.kumo.font.KumoFont;
 import com.kennycason.kumo.font.scale.FontScalar;
 import com.kennycason.kumo.font.scale.LinearFontScalar;
@@ -21,48 +29,49 @@ import com.kennycason.kumo.placement.RTreeWordPlacer;
 import com.kennycason.kumo.placement.RectangleWordPlacer;
 import com.kennycason.kumo.wordstart.RandomWordStart;
 import com.kennycason.kumo.wordstart.WordStartStrategy;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import timber.log.Timber;
+
 
 /**
  * Created by kenny on 6/29/14.
  */
 public class WordCloud {
-    private static final Logger LOGGER = LoggerFactory.getLogger(WordCloud.class);
 
-    protected final Dimension dimension;
+    protected final Rect dimension;
     protected final CollisionMode collisionMode;
     protected final CollisionChecker collisionChecker;
     protected final RectanglePixelCollidable backgroundCollidable;
     protected final CollisionRaster collisionRaster;
-    protected final BufferedImage bufferedImage;
+    protected final Bitmap bufferedImage;
     protected final Padder padder;
     protected final Set<Word> skipped = new HashSet<>();
     protected int padding;
     protected Background background;
-    protected Color backgroundColor = Color.BLACK;
+    protected int backgroundColor = Color.BLACK;
     protected FontScalar fontScalar = new LinearFontScalar(10, 40);
-    protected KumoFont kumoFont = new KumoFont("Comic Sans MS", FontWeight.BOLD);
+    protected KumoFont kumoFont = new KumoFont(Typeface.DEFAULT_BOLD);
     protected AngleGenerator angleGenerator = new AngleGenerator();
     protected RectangleWordPlacer wordPlacer = new RTreeWordPlacer();
-    protected ColorPalette colorPalette = new ColorPalette(0x02B6F2, 0x37C2F0, 0x7CCBE6, 0xC4E7F2, 0xFFFFFF);
+    protected ColorPalette colorPalette = new ColorPalette(0xff02B6F2, 0xff37C2F0, 0xff7CCBE6, 0xffC4E7F2, 0xffFFFFFF);
     protected WordStartStrategy wordStartStrategy = new RandomWordStart();
+    private final String TAG = "WordCloud";
     
-    public WordCloud(final Dimension dimension, final CollisionMode collisionMode) {
+    public WordCloud(final Rect dimension, final CollisionMode collisionMode) {
         this.collisionMode = collisionMode;
         this.padder = derivePadder(collisionMode);
         this.collisionChecker = deriveCollisionChecker(collisionMode);
         this.collisionRaster = new CollisionRaster(dimension);
-        this.bufferedImage = new BufferedImage(dimension.width, dimension.height, BufferedImage.TYPE_INT_ARGB);
+        this.bufferedImage = Bitmap.createBitmap(dimension.width(), dimension.height(), Bitmap.Config.ARGB_8888);
         this.backgroundCollidable = new RectanglePixelCollidable(collisionRaster, new Point(0, 0));
         this.dimension = dimension;
         this.background = new RectangleBackground(dimension);
@@ -83,13 +92,9 @@ public class WordCloud {
             final boolean placed = place(word, point);
 
             if (placed) {
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("placed: {} ({}/{})", word.getWord(), currentWord, wordFrequencies.size());
-                }
+                Timber.tag(TAG).i("placed: %s (%d/%d)", word.getWord(), currentWord, wordFrequencies.size());
             } else {
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("skipped: {} ({}/{})", word.getWord(), currentWord, wordFrequencies.size());
-                }
+                Timber.tag(TAG).i("skipped: %s (%s/%d)", word.getWord(), currentWord, wordFrequencies.size());
                 skipped.add(word);
             }
             currentWord++;
@@ -98,19 +103,11 @@ public class WordCloud {
         drawForegroundToBackground();
     }
 
-    public void writeToFile(final String outputFileName) {
-        String extension = "";
-        final int i = outputFileName.lastIndexOf('.');
-        if (i > 0) {
-            extension = outputFileName.substring(i + 1);
-        }
-        try {
-            LOGGER.info("Saving WordCloud to: {}", outputFileName);
-            ImageIO.write(bufferedImage, extension, new File(outputFileName));
-
-        } catch (final IOException e) {
-            LOGGER.error(e.getMessage(), e);
-        }
+    public void writeToFile(final String outputFileName) throws IOException {
+        Timber.tag(TAG).i("Saving WordCloud to: %s", outputFileName);
+        FileOutputStream fos = new FileOutputStream(outputFileName);
+        bufferedImage.compress(Bitmap.CompressFormat.PNG, 100, fos);
+        fos.close();
     }
 
     /**
@@ -119,7 +116,7 @@ public class WordCloud {
      * @param outputStream the output stream to write the image data to
      */
     public void writeToStreamAsPNG(final OutputStream outputStream) {
-        writeToStream("png", outputStream);
+        writeToStream(Bitmap.CompressFormat.PNG, outputStream);
     }
 
     /**
@@ -128,16 +125,14 @@ public class WordCloud {
      * @param format       the image format
      * @param outputStream the output stream to write image data to
      */
-    public void writeToStream(final String format, final OutputStream outputStream) {
-        try {
-            LOGGER.debug("Writing WordCloud image data to output stream");
-            ImageIO.write(bufferedImage, format, outputStream);
-            LOGGER.debug("Done writing WordCloud image data to output stream");
+    public void writeToStream(final Bitmap.CompressFormat format, final OutputStream outputStream) {
+        Timber.tag(TAG).d("Writing WordCloud image data to output stream");
+        boolean success = bufferedImage.compress(format, 100, outputStream);
+        if (success)
+            Timber.tag(TAG).d("Done writing WordCloud image data to output stream");
+        else
+            Timber.tag(TAG).d("Failed to write WordCloud image data to output stream");
 
-        } catch (final IOException e) {
-            LOGGER.error(e.getMessage(), e);
-            throw new KumoException("Could not write wordcloud to outputstream due to an IOException", e);
-        }
     }
 
     /**
@@ -146,19 +141,18 @@ public class WordCloud {
      * for a more flexible pixel perfect collision
      */
     protected void drawForegroundToBackground() {
-        if (backgroundColor == null) { return; }
-
-        final BufferedImage backgroundBufferedImage = new BufferedImage(dimension.width, dimension.height, this.bufferedImage.getType());
-        final Graphics graphics = backgroundBufferedImage.getGraphics();
+        final Bitmap backgroundBufferedImage = Bitmap.createBitmap(dimension.width(), dimension.height(), this.bufferedImage.getConfig());
+        final Canvas graphics = new Canvas(backgroundBufferedImage);
 
         // draw current color
-        graphics.setColor(backgroundColor);
-        graphics.fillRect(0, 0, dimension.width, dimension.height);
-        graphics.drawImage(bufferedImage, 0, 0, null);
+        graphics.drawColor(backgroundColor);
+        graphics.drawBitmap(bufferedImage, 0, 0, null);
 
         // draw back to original
-        final Graphics graphics2 = bufferedImage.getGraphics();
-        graphics2.drawImage(backgroundBufferedImage, 0, 0, null);
+        final Canvas graphics2 = new Canvas(bufferedImage);
+        graphics2.drawBitmap(backgroundBufferedImage, 0, 0, null);
+
+        backgroundBufferedImage.recycle();
     }
 
     /**
@@ -168,9 +162,9 @@ public class WordCloud {
      * @param start the center of the spiral
      * @return the maximum usefull radius
      */
-    static int computeRadius(final Dimension dimension, final Point start) {
-        final int maxDistanceX = Math.max(start.x, dimension.width - start.x) + 1;
-        final int maxDistanceY = Math.max(start.y, dimension.height - start.y) + 1;
+    static int computeRadius(final Rect dimension, final Point start) {
+        final int maxDistanceX = Math.max(start.x, dimension.width() - start.x) + 1;
+        final int maxDistanceY = Math.max(start.y, dimension.height() - start.y) + 1;
         
         // we use the pythagorean theorem to determinate the maximum radius
         return (int) Math.ceil(Math.sqrt(maxDistanceX * maxDistanceX + maxDistanceY * maxDistanceY));
@@ -182,30 +176,30 @@ public class WordCloud {
      * @param start the place to start trying to place the word
      */
     protected boolean place(final Word word, final Point start) {
-        final Graphics graphics = this.bufferedImage.getGraphics();
+        final Canvas graphics = new Canvas(this.bufferedImage);
 
         final int maxRadius = computeRadius(dimension, start);
         final Point position = word.getPosition();
         
         for (int r = 0; r < maxRadius; r += 2) {
-            for (int x = Math.max(-start.x, -r); x <= Math.min(r, dimension.width - start.x - 1); x++) {
+            for (int x = Math.max(-start.x, -r); x <= Math.min(r, dimension.width() - start.x - 1); x++) {
                 position.x = start.x + x;
 
                 final int offset = (int) Math.sqrt(r * r - x * x);
                 
                 // try positive root
                 position.y = start.y + offset;
-                if (position.y >= 0 && position.y < dimension.height && canPlace(word)) {
+                if (position.y >= 0 && position.y < dimension.height() && canPlace(word)) {
                     collisionRaster.mask(word.getCollisionRaster(), position);
-                    graphics.drawImage(word.getBufferedImage(), position.x, position.y, null);
+                    graphics.drawBitmap(word.getBufferedImage(), position.x, position.y, null);
                     return true;
                 }
                 
                 // try negative root (if offset != 0)
                 position.y = start.y - offset;
-                if (offset != 0 && position.y >= 0 && position.y < dimension.height && canPlace(word)) {
+                if (offset != 0 && position.y >= 0 && position.y < dimension.height() && canPlace(word)) {
                     collisionRaster.mask(word.getCollisionRaster(), position);
-                    graphics.drawImage(word.getBufferedImage(), position.x, position.y, null);
+                    graphics.drawBitmap(word.getBufferedImage(), position.x, position.y, null);
                     return true;
                 }
             }
@@ -216,12 +210,12 @@ public class WordCloud {
 
     private boolean canPlace(final Word word) {
         final Point position = word.getPosition();
-        final Dimension dimensionOfWord = word.getDimension();
+        final Rect dimensionOfWord = word.getDimension();
         
         // are we inside the background?
-        if (position.y < 0 || position.y + dimensionOfWord.height > dimension.height) {
+        if (position.y < 0 || position.y + dimensionOfWord.height() > dimension.height()) {
             return false;
-        } else if (position.x < 0 || position.x + dimensionOfWord.width > dimension.width) {
+        } else if (position.x < 0 || position.x + dimensionOfWord.width() > dimension.width()) {
             return false;
         }
         
@@ -249,20 +243,17 @@ public class WordCloud {
     }
 
     private Word buildWord(final WordFrequency wordFrequency, final int maxFrequency, final ColorPalette colorPalette) {
-        final Graphics2D graphics = this.bufferedImage.createGraphics();
-        
-        // set the rendering hint here to ensure the font metrics are correct
-        graphics.setRenderingHints(Word.getRenderingHints());
-        
         final int frequency = wordFrequency.getFrequency();
         final float fontHeight = this.fontScalar.scale(frequency, maxFrequency);
-        final Font font = (wordFrequency.hasFont() ? wordFrequency.getFont() : kumoFont).getFont().deriveFont(fontHeight);
-        final FontMetrics fontMetrics = graphics.getFontMetrics(font);
-        
+        final Typeface typeface = (wordFrequency.hasFont() ? wordFrequency.getFont() : kumoFont).getFont();
+        final Paint paint = getPaint();
+        paint.setTypeface(typeface);
+        paint.setTextSize(fontHeight);
+
         final double theta = angleGenerator.randomNext();
         final Word word = new Word(
-                wordFrequency.getWord(), colorPalette.next(), 
-                fontMetrics, this.collisionChecker, theta
+                wordFrequency.getWord(), colorPalette.next(),
+                paint, this.collisionChecker, theta
         );
        
         if (padding > 0) {
@@ -297,7 +288,7 @@ public class WordCloud {
         throw new IllegalArgumentException("CollisionMode can not be null");
     }
 
-    public void setBackgroundColor(final Color backgroundColor) {
+    public void setBackgroundColor(final int backgroundColor) {
         this.backgroundColor = backgroundColor;
     }
 
@@ -325,7 +316,11 @@ public class WordCloud {
         this.angleGenerator = angleGenerator;
     }
 
-    public BufferedImage getBufferedImage() {
+    public Bitmap getBufferedImage() {
+        return bufferedImage;
+    }
+
+    public Bitmap getBitmap() {
         return bufferedImage;
     }
 

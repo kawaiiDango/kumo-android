@@ -1,11 +1,13 @@
 package com.kennycason.kumo.bg;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Point;
+import android.graphics.Rect;
+
 import com.kennycason.kumo.collide.RectanglePixelCollidable;
 import com.kennycason.kumo.image.CollisionRaster;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -29,7 +31,7 @@ public class PixelBoundaryBackground implements Background {
      * @throws IOException when fails to open file stream
      */
     public PixelBoundaryBackground(final InputStream imageInputStream) throws IOException {
-        final BufferedImage bufferedImage = ImageIO.read(imageInputStream);
+        final Bitmap bufferedImage = BitmapFactory.decodeStream(imageInputStream);
         this.collisionRaster = new CollisionRaster(bufferedImage);
     }
 
@@ -55,24 +57,24 @@ public class PixelBoundaryBackground implements Background {
     
     @Override
     public void mask(final RectanglePixelCollidable background) {
-        final Dimension dimensionOfShape = collisionRaster.getDimension();
-        final Dimension dimensionOfBackground = background.getDimension();
+        final Rect dimensionOfShape = collisionRaster.getDimension();
+        final Rect dimensionOfBackground = background.getDimension();
         
         final int minY = Math.max(position.y, 0);
         final int minX = Math.max(position.x, 0);
 
-        final int maxY = dimensionOfShape.height - position.y - 1;
-        final int maxX = dimensionOfShape.width - position.x - 1;
+        final int maxY = dimensionOfShape.height() - position.y - 1;
+        final int maxX = dimensionOfShape.width() - position.x - 1;
 
         final CollisionRaster rasterOfBackground = background.getCollisionRaster();
 
-        for (int y = 0; y < dimensionOfBackground.height; y++) {
+        for (int y = 0; y < dimensionOfBackground.height(); y++) {
             if (y < minY || y > maxY) {
-                for (int x = 0; x < dimensionOfBackground.width; x++) {
+                for (int x = 0; x < dimensionOfBackground.width(); x++) {
                     rasterOfBackground.setPixelIsNotTransparent(position.x + x, position.y + y);
                 }
             } else {
-                for (int x = 0; x < dimensionOfBackground.width; x++) {
+                for (int x = 0; x < dimensionOfBackground.width(); x++) {
                     if (x < minX || x > maxX || collisionRaster.isTransparent(x, y)) {
                         rasterOfBackground.setPixelIsNotTransparent(position.x + x, position.y + y);
                     }

@@ -17,7 +17,11 @@ kumo-core/output_test/*bmp
 *.log.gz
 .idea/*
 *.iml
-dependency-reduced-pom.xml
-release.properties
-pom.xml.releaseBackup
-kumo-core/output/FailedRotateWordTest_*
+.gradle
+/local.properties
+.idea
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties

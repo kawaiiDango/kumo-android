@@ -1,9 +1,11 @@
 package com.kennycason.kumo.collide;
 
+import android.graphics.Point;
+import android.graphics.Rect;
+
 import com.kennycason.kumo.collide.checkers.RectanglePixelCollisionChecker;
 import com.kennycason.kumo.image.CollisionRaster;
 
-import java.awt.*;
 
 /**
  * Created by kenny on 7/2/14.
@@ -32,7 +34,7 @@ public class RectanglePixelCollidable implements Collidable {
     }
 
     @Override
-    public Dimension getDimension() {
+    public Rect getDimension() {
         return collisionRaster.getDimension();
     }
 

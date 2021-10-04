@@ -22,10 +22,10 @@ public class RTreeWordPlacer implements RectangleWordPlacer {
     @Override
     public boolean place(final Word word) {
         final Rectangle wordRectangle = Geometries.rectangle(
-                word.getPosition().getX(),
-                word.getPosition().getY(),
-                word.getPosition().getX() + word.getDimension().getWidth(),
-                word.getPosition().getY() + word.getDimension().getHeight());
+                word.getPosition().x,
+                word.getPosition().y,
+                word.getPosition().x + word.getDimension().width(),
+                word.getPosition().y + word.getDimension().height());
 
         final Observable<Entry<String, Rectangle>> results = placedWordRTree.search(
                 wordRectangle);

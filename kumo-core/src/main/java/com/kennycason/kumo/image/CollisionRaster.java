@@ -1,7 +1,9 @@
 package com.kennycason.kumo.image;
 
-import java.awt.*;
-import java.awt.image.BufferedImage;
+import android.graphics.Bitmap;
+import android.graphics.Point;
+import android.graphics.Rect;
+
 import java.util.BitSet;
 
 /**
@@ -10,14 +12,14 @@ import java.util.BitSet;
 public class CollisionRaster {
 
     private final BitSet data;
-    private final Dimension dimension;
+    private final Rect dimension;
 
-    public CollisionRaster(final BufferedImage bufferedImage) {
-        this(new Dimension(bufferedImage.getWidth(), bufferedImage.getHeight()));
+    public CollisionRaster(final Bitmap bufferedImage) {
+        this(new Rect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight()));
 
-        for (int y = 0; y < dimension.height; y++) {
-            for (int x = 0; x < dimension.width; x++) {
-                final boolean pixelIsTransparent = (bufferedImage.getRGB(x, y) & 0xFF000000) == 0x00000000;
+        for (int y = 0; y < dimension.height(); y++) {
+            for (int x = 0; x < dimension.width(); x++) {
+                final boolean pixelIsTransparent = (bufferedImage.getPixel(x, y) & 0xFF000000) == 0x00000000;
 
                 if (!pixelIsTransparent) {
                     setPixelIsNotTransparent(x, y);
@@ -26,10 +28,10 @@ public class CollisionRaster {
         }
     }
 
-    public CollisionRaster(final Dimension dimension) {
+    public CollisionRaster(final Rect dimension) {
         this.dimension = dimension;
 
-        data = new BitSet(dimension.width * dimension.height);
+        data = new BitSet(dimension.width() * dimension.height());
     }
 
     public CollisionRaster(CollisionRaster other) {
@@ -38,13 +40,13 @@ public class CollisionRaster {
     }
 
     private int computeIndex(final int x, final int y) {
-        if (x < 0 || x >= dimension.width) {
+        if (x < 0 || x >= dimension.width()) {
             throw new IllegalArgumentException("x is out of bounds");
-        } else if (y < 0 || y >= dimension.height) {
+        } else if (y < 0 || y >= dimension.height()) {
             throw new IllegalArgumentException("y is out of bounds");
         }
         
-        return (y * dimension.width) + x;
+        return (y * dimension.width()) + x;
     }
 
     public final void setPixelIsNotTransparent(final int x, final int y) {
@@ -52,8 +54,8 @@ public class CollisionRaster {
     }
 
     public void mask(final CollisionRaster collisionRaster, final Point point) {
-        final int maxHeight = Math.min(point.y + collisionRaster.getDimension().height, dimension.height);
-        final int maxWidth = Math.min(point.x + collisionRaster.getDimension().width, dimension.width);
+        final int maxHeight = Math.min(point.y + collisionRaster.getDimension().height(), dimension.height());
+        final int maxWidth = Math.min(point.x + collisionRaster.getDimension().width(), dimension.width());
         
         for (int offY = point.y, offY2 = 0; offY < maxHeight; offY++, offY2++) {
             // we can't set the "line is not transparent" flag here, 
@@ -72,7 +74,7 @@ public class CollisionRaster {
      * @param y the line to check
      */
     public int nextNotTransparentPixel(final int minX, final int maxX, int y) {
-        if (maxX > dimension.width) {
+        if (maxX > dimension.width()) {
             throw new IllegalArgumentException("maxX is out of bounds");
         }
         
@@ -90,7 +92,7 @@ public class CollisionRaster {
         return !data.get(computeIndex(x, y));
     }
 
-    public Dimension getDimension() {
+    public Rect getDimension() {
         return dimension;
     }
     

@@ -21,8 +21,8 @@ public class WordPixelPadder implements Padder {
         // create a copy of the original raster
         final CollisionRaster originalRaster = new CollisionRaster(collisionRaster);
 
-        final int width = originalRaster.getDimension().width;
-        final int height = originalRaster.getDimension().height;
+        final int width = originalRaster.getDimension().width();
+        final int height = originalRaster.getDimension().height();
 
         // this is the array with the sum of all set pixels in the padding area.
         // if the padding area is changed, we only need partial updates

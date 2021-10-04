@@ -1,8 +1,10 @@
 package com.kennycason.kumo.wordstart;
 
+import android.graphics.Point;
+import android.graphics.Rect;
+
 import com.kennycason.kumo.Word;
 
-import java.awt.*;
 
 /**
  * The WordSpreadScheme provides a possible starting position for a word on the
@@ -23,6 +25,6 @@ public interface WordStartStrategy {
      *            the word to be placed
      * @return X/Y starting position
      */
-    Point getStartingPoint(Dimension dimension, Word word);
+    Point getStartingPoint(Rect dimension, Word word);
 
 }

@@ -1,12 +1,14 @@
 package com.kennycason.kumo;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
 
 /**
 *Class to process image with a required size.
@@ -29,17 +31,21 @@ public final class ImageProcessor {
      * @return the resized image in ByteArrayInputStream form
      */
     public static InputStream readImage(String fileName, int width, int height, String imageType) throws IOException {
-        final BufferedImage originImage = ImageIO.read(getInputStream(fileName));
-        final Image scaledImage = originImage.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-        final BufferedImage bufferedImage = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
+        final Bitmap originImage = BitmapFactory.decodeStream(getInputStream(fileName));
+        final Bitmap scaledImage = Bitmap.createScaledBitmap(originImage, width, height, false);
+        final Bitmap bufferedImage = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
 
 
-        final Graphics graphics = bufferedImage.getGraphics();
-        graphics.drawImage(scaledImage, 0, 0, null);
+        final Canvas graphics = new Canvas(bufferedImage);
+        graphics.drawBitmap(scaledImage, 0, 0, null);
 
 
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        ImageIO.write(bufferedImage, imageType, outputStream);
+        bufferedImage.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+
+        originImage.recycle();
+        scaledImage.recycle();
+        bufferedImage.recycle();
         return new ByteArrayInputStream(outputStream.toByteArray());
     }
     

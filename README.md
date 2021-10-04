@@ -1,4 +1,14 @@
+### Kumo-android
 
+Android port of kumo.
+
+- Uses android classes instead of java.awt.*
+- Removed most large dependencies.
+- Methods which relied on large dependencies or are not directly possible on android have been removed.
+- The docs have not been corrected to reflect the new datatypes.
+- Uses Timber for logging.
+
+#### Original readme:
 
 # <img src="logo/Kumo02.png" alt="Kumo" height="28px"> Kumo
 

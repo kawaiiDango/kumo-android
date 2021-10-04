@@ -1,14 +1,15 @@
 package com.kennycason.kumo.font;
 
-import java.awt.*;
+
+import android.graphics.Typeface;
 
 /**
  * Created by kenny on 7/11/14.
  */
 public enum FontWeight {
-    PLAIN(Font.PLAIN),
-    BOLD(Font.BOLD),
-    ITALIC(Font.ITALIC);
+    PLAIN(Typeface.NORMAL),
+    BOLD(Typeface.BOLD),
+    ITALIC(Typeface.ITALIC);
 
     private final int weight;
 

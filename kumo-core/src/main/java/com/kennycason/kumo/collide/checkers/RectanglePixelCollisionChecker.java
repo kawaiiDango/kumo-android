@@ -1,9 +1,10 @@
 package com.kennycason.kumo.collide.checkers;
 
+import android.graphics.Point;
+
 import com.kennycason.kumo.collide.Collidable;
 import com.kennycason.kumo.image.CollisionRaster;
 
-import java.awt.*;
 
 /**
  * Created by kenny on 7/1/14.
@@ -36,12 +37,12 @@ public class RectanglePixelCollisionChecker implements CollisionChecker {
 
         // get the overlapping box
         final int startX = Math.max(position.x, position2.x);
-        final int endX = Math.min(position.x + collidable.getDimension().width,
-                                  position2.x + collidable2.getDimension().width);
+        final int endX = Math.min(position.x + collidable.getDimension().width(),
+                                  position2.x + collidable2.getDimension().width());
 
         final int startY = Math.max(position.y, position2.y);
-        final int endY = Math.min(position.y + collidable.getDimension().height,
-                                  position2.y + collidable2.getDimension().height);
+        final int endY = Math.min(position.y + collidable.getDimension().height(),
+                                  position2.y + collidable2.getDimension().height());
 
         final int endX1 = endX - position.x;
         final int endX2 = endX - position2.x;

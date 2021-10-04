@@ -1,10 +1,12 @@
 package com.kennycason.kumo.bg;
 
+import android.graphics.Point;
+import android.graphics.Rect;
+
 import com.kennycason.kumo.collide.Collidable;
 import com.kennycason.kumo.collide.RectanglePixelCollidable;
 import com.kennycason.kumo.image.CollisionRaster;
 
-import java.awt.*;
 
 /**
  * Created by kenny on 6/30/14.
@@ -22,11 +24,11 @@ public class CircleBackground implements Background {
     
     @Override
     public void mask(RectanglePixelCollidable background) {
-        Dimension dimensionOfBackground = background.getDimension();
+        Rect dimensionOfBackground = background.getDimension();
         CollisionRaster rasterOfBackground = background.getCollisionRaster();
         
-        for (int y = 0; y < dimensionOfBackground.height; y++) {
-            for (int x = 0; x < dimensionOfBackground.width; x++) {
+        for (int y = 0; y < dimensionOfBackground.height(); y++) {
+            for (int x = 0; x < dimensionOfBackground.width(); x++) {
                 if (!inCircle(x, y)) {
                      rasterOfBackground.setPixelIsNotTransparent(
                              position.x + x, position.y + y

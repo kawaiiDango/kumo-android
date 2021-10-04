@@ -1,5 +1,8 @@
 package com.kennycason.kumo.nlp;
 
+import static java.util.stream.Collectors.reducing;
+
+import com.kennycason.kumo.KumoUtils;
 import com.kennycason.kumo.WordFrequency;
 import com.kennycason.kumo.nlp.filter.CompositeFilter;
 import com.kennycason.kumo.nlp.filter.Filter;
@@ -9,21 +12,20 @@ import com.kennycason.kumo.nlp.normalize.CharacterStrippingNormalizer;
 import com.kennycason.kumo.nlp.normalize.LowerCaseNormalizer;
 import com.kennycason.kumo.nlp.normalize.Normalizer;
 import com.kennycason.kumo.nlp.normalize.TrimToEmptyNormalizer;
-import com.kennycason.kumo.nlp.tokenizer.core.WhiteSpaceWordTokenizer;
 import com.kennycason.kumo.nlp.tokenizer.api.WordTokenizer;
-import org.apache.commons.io.IOUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
+import com.kennycason.kumo.nlp.tokenizer.core.WhiteSpaceWordTokenizer;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.reducing;
 
 /**
  * Created by kenny on 7/1/14.
@@ -65,7 +67,7 @@ public class FrequencyAnalyzer {
     }
 
     public List<WordFrequency> load(final InputStream inputStream) throws IOException {
-        return load(IOUtils.readLines(inputStream, characterEncoding));
+        return load(KumoUtils.readLines(inputStream, characterEncoding));
     }
 
     public List<WordFrequency> load(final File file) throws IOException {
@@ -76,15 +78,14 @@ public class FrequencyAnalyzer {
         return this.load(new File(filePath));
     }
 
-    public List<WordFrequency> load(final URL url) throws IOException {
-        final Document doc = Jsoup.parse(url, (int) urlLoadTimeout);
-        return load(Collections.singletonList(doc.body().text()));
-    }
+//    public List<WordFrequency> load(final URL url) throws IOException {
+//        final Document doc = Jsoup.parse(url, (int) urlLoadTimeout);
+//        return load(Collections.singletonList(doc.body().text()));
+//    }
 
 
     public List<WordFrequency> load(final List<String> texts) {
         final List<WordFrequency> wordFrequencies = new ArrayList<>();
-
 
         final Map<String, Integer> cloud = buildWordFrequencies(texts, wordTokenizer);
         cloud.forEach((key, value) -> wordFrequencies.add(new WordFrequency(key, value)));
@@ -99,10 +100,10 @@ public class FrequencyAnalyzer {
      * @param autoFillWord  is used to define use what word to fill the cloud when there is no enough word.
      */
     public List<WordFrequency> load(final InputStream inputStream, boolean autoFill, String autoFillWord) throws IOException {
-        return load(IOUtils.readLines(inputStream, characterEncoding), autoFill, autoFillWord);
+        return load(KumoUtils.readLines(inputStream, characterEncoding), autoFill, autoFillWord);
     }
     public List<WordFrequency> load(final InputStream inputStream, boolean autoFill) throws IOException {
-        return load(IOUtils.readLines(inputStream, characterEncoding), autoFill, "nothing");
+        return load(KumoUtils.readLines(inputStream, characterEncoding), autoFill, "nothing");
     }
     //if enable autoFill but not specify autoFillWord, use nothing as default
     //also allow use List<String> directly

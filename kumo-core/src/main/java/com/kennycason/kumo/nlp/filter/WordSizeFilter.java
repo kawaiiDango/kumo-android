@@ -1,6 +1,7 @@
 package com.kennycason.kumo.nlp.filter;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import android.text.TextUtils;
 
 /**
  * Created by kenny
@@ -18,7 +19,7 @@ public class WordSizeFilter extends Filter {
 
     @Override
     public boolean test(final String word) {
-        return isNotBlank(word)
+        return !TextUtils.isEmpty(word.trim())
                 && word.length() >= minLength
                 && word.length() < maxLength;
     }

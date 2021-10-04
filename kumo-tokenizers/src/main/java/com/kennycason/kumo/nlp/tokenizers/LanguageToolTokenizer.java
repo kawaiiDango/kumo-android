@@ -1,6 +1,5 @@
 package com.kennycason.kumo.nlp.tokenizers;
 
-import org.apache.commons.lang.StringUtils;
 import org.languagetool.Language;
 import org.languagetool.tokenizers.Tokenizer;
 
@@ -21,7 +20,7 @@ class LanguageToolTokenizer implements Tokenizer {
         final List<String> tokens = new ArrayList<>();
         for (final String rawToken : rawTokens) {   // parse parts-of-speech tags away (政府/n, 依照/p, 法律/n, 行/ng, 使/v, 执法/vn)
             final String token = parseToken(rawToken);
-            if (StringUtils.isBlank(token)) { continue; }
+            if (token.trim().isEmpty()) { continue; }
             tokens.add(token);
         }
         return tokens;
@@ -29,9 +28,9 @@ class LanguageToolTokenizer implements Tokenizer {
 
     private static String parseToken(final String rawToken) {
         if (rawToken.contains("/")) {
-            return StringUtils.trimToEmpty(rawToken.substring(0, rawToken.indexOf('/')));
+            return rawToken.substring(0, rawToken.indexOf('/')).trim();
         }
-        return StringUtils.trimToEmpty(rawToken);
+        return rawToken.trim();
     }
 
 }

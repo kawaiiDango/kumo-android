@@ -1,12 +1,13 @@
 package com.kennycason.kumo.nlp.tokenizers;
 
 import com.kennycason.kumo.nlp.tokenizer.api.WordTokenizer;
-import org.languagetool.language.English;
+
+import org.languagetool.language.AmericanEnglish;
 
 import java.util.List;
 
 public class EnglishWordTokenizer implements WordTokenizer {
-    private static final LanguageToolTokenizer TOKENIZER = new LanguageToolTokenizer(new English());
+    private static final LanguageToolTokenizer TOKENIZER = new LanguageToolTokenizer(new AmericanEnglish());
 
     public EnglishWordTokenizer() {}
 

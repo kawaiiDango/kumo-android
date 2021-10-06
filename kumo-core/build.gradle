@@ -2,6 +2,15 @@ plugins {
     id 'com.android.library'
 }
 
+ext {
+    // Provide your own coordinates here
+    PUBLISH_GROUP_ID = 'io.github.kawaiidango.kumo-android'
+    PUBLISH_VERSION = '1.28.0'
+    PUBLISH_ARTIFACT_ID = 'kumo-core'
+}
+
+apply from: "${rootProject.projectDir}/script/publish-module.gradle"
+
 android {
     compileSdk 31
 
@@ -35,7 +44,8 @@ android {
 
 dependencies {
     implementation "com.github.davidmoten:rtree:0.8.7"
-    implementation project(":kumo-api")
+//    implementation project(":kumo-api")
+    implementation "com.kennycason:kumo-api:1.28"
     implementation 'com.jakewharton.timber:timber:5.0.1'
 
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'

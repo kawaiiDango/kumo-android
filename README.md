@@ -2,6 +2,12 @@
 
 Android port of kumo.
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.kawaiidango.kumo-android/kumo-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.kawaiidango.kumo-android/kumo-core)
+
+```
+implementation "io.github.kawaiidango.kumo-android:kumo-core:1.28.0"
+```
+
 - Uses android classes instead of java.awt.*
 - Removed most large dependencies.
 - Methods which relied on large dependencies or are not directly possible on android have been removed.

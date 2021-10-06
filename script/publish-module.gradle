@@ -1,0 +1,96 @@
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+apply plugin: 'org.jetbrains.dokka'
+
+task androidSourcesJar(type: Jar) {
+    archiveClassifier.set('sources')
+    if (project.plugins.findPlugin("com.android.library")) {
+        // For Android libraries
+        from android.sourceSets.main.java.srcDirs
+//        from android.sourceSets.main.kotlin.srcDirs
+    } else {
+        // For pure Kotlin libraries, in case you have them
+        from sourceSets.main.java.srcDirs
+//        from sourceSets.main.kotlin.srcDirs
+    }
+}
+
+task javadocJar(type: Jar, dependsOn: dokkaJavadoc) {
+    archiveClassifier.set('javadoc')
+    from dokkaJavadoc.outputDirectory
+}
+
+artifacts {
+    archives androidSourcesJar
+}
+
+group = PUBLISH_GROUP_ID
+version = PUBLISH_VERSION
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                // The coordinates of the library, being set from variables that
+                // we'll set up later
+                groupId PUBLISH_GROUP_ID
+                artifactId PUBLISH_ARTIFACT_ID
+                version PUBLISH_VERSION
+
+                // Two artifacts, the `aar` (or `jar`) and the sources
+                if (project.plugins.findPlugin("com.android.library")) {
+                    from components.release
+                } else {
+                    from components.java
+                }
+
+                artifact androidSourcesJar
+                artifact javadocJar
+
+                // Mostly self-explanatory metadata
+                pom {
+                    name = PUBLISH_ARTIFACT_ID
+                    description = 'Android port of Kumo, a word cloud generator.'
+                    url = 'https://github.com/kawaiiDango/kumo-android'
+                    licenses {
+                        license {
+                            name = 'MIT'
+                            url = 'https://www.mit.edu/~amini/LICENSE.md'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'kawaiiDango'
+                            name = 'Kawaii Dango'
+                        }
+                        // Add all other devs here...
+                    }
+
+                    // Version control info - if you're using GitHub, follow the
+                    // format as seen here
+                    scm {
+                        connection = 'scm:git:github.com:kawaiiDango/kumo-android.git'
+                        developerConnection = 'scm:git:ssh://github.com:kawaiiDango/kumo-android.git'
+                        url = 'https://github.com:kawaiiDango/kumo-android'
+                    }
+                }
+            }
+        }
+    }
+}
+
+signing {
+    ///
+    File secretPropsFile = project.rootProject.file('local.properties')
+    // Read local.properties file first if it exists
+    Properties p = new Properties()
+    new FileInputStream(secretPropsFile).withCloseable { is -> p.load(is) }
+    p.each { name, value -> ext[name] = value }
+
+    useInMemoryPgpKeys(
+            ext["signing.keyId"],
+            ext["signing.key"],
+            ext["signing.password"],
+    )
+    sign publishing.publications
+}

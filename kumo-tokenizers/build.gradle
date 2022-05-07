@@ -5,9 +5,9 @@ targetCompatibility = "1.8"
 
 dependencies {
     implementation project(":kumo-api")
-    implementation "org.languagetool:language-en:5.5"
-    implementation "org.languagetool:language-zh:5.5"
+    implementation "org.languagetool:language-en:5.7"
+    implementation "org.languagetool:language-zh:5.7"
 
-    testImplementation "org.slf4j:slf4j-api:1.7.32"
+    testImplementation "org.slf4j:slf4j-api:1.7.36"
     testImplementation 'junit:junit:4.13.2'
 }

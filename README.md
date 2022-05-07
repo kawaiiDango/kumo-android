@@ -1,18 +1,19 @@
 ### Kumo-android
 
-Android port of kumo.
+Android port of Kumo.
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.kawaiidango.kumo-android/kumo-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.kawaiidango.kumo-android/kumo-core)
 
 ```
-implementation "io.github.kawaiidango.kumo-android:kumo-core:1.28.0"
+implementation "io.github.kawaiidango.kumo-android:kumo-core:$version_see_above"
 ```
 
-- Uses android classes instead of java.awt.*
+- Uses android classes instead of java.awt.\*
 - Removed most large dependencies.
 - Methods which relied on large dependencies or are not directly possible on android have been removed.
-- The docs have not been corrected to reflect the new datatypes.
+- The docs have not been corrected to reflect the new data types.
 - Uses Timber for logging.
+- Added the following methods to WordCloud: getPlaced(), setProgressCallback()
 
 #### Original readme:
 
@@ -22,7 +23,7 @@ Kumo's goal is to create a powerful and user friendly Word Cloud API in Java. Ku
 
 Please feel free to jump in and help improve Kumo! There are many places for performance optimization in Kumo!
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.kennycason/kumo-core/badge.svg?style=flat)](https://maven-badges.herokuapp.com/maven-central/com.kennycason/kumo-core)  [![CircleCI](https://circleci.com/gh/kennycason/kumo.svg?style=svg)](https://circleci.com/gh/kennycason/kumo)<br/>
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.kennycason/kumo-core/badge.svg?style=flat)](https://maven-badges.herokuapp.com/maven-central/com.kennycason/kumo-core) [![CircleCI](https://circleci.com/gh/kennycason/kumo.svg?style=svg)](https://circleci.com/gh/kennycason/kumo)<br/>
 
 ### Current Features
 
@@ -36,7 +37,7 @@ Please feel free to jump in and help improve Kumo! There are many places for per
 - Two Modes that of Collision and Padding: PIXEL_PERFECT and RECTANGLE.
 - Polar Word Clouds. Draw two opposing word clouds in one image to easily compare/contrast date sets.
 - Layered Word Clouds. Overlay multiple word clouds.
-- WhiteSpace and Chinese Word Tokenizer. Fully extendable. 
+- WhiteSpace and Chinese Word Tokenizer. Fully extendable.
 - Frequency Analyzer to tokenize, filter and compute word counts.
 - Command Line Interface
 
@@ -55,6 +56,7 @@ Please feel free to jump in and help improve Kumo! There are many places for per
 ```
 
 Include `kumo-tokenizers` if you want Chinese serialization. More languages to come.
+
 ```xml
 <dependency>
     <groupId>com.kennycason</groupId>
@@ -159,13 +161,12 @@ wordCloud.build(wordFrequencies);
 wordCloud.writeToFile("kumo-core/output/wordcloud_rectangle.png");
 ```
 
-
 Example using Linear Color Gradients
 
 ```java
 final FrequencyAnalyzer frequencyAnalyzer = new FrequencyAnalyzer();
 frequencyAnalyzer.setWordFrequenciesToReturn(500);
-frequencyAnalyzer.setMinWordLength(4); 
+frequencyAnalyzer.setMinWordLength(4);
 final List<WordFrequency> wordFrequencies = frequencyAnalyzer.load("text/my_text_file.txt");
 final Dimension dimension = new Dimension(600, 600);
 final WordCloud wordCloud = new WordCloud(dimension, CollisionMode.PIXEL_PERFECT);
@@ -216,7 +217,6 @@ wordCloud.build(wordFrequencies, wordFrequencies2);
 wordCloud.writeToFile("kumo-core/output/polar_newyork_circle_blur_sqrt_font.png");
 ```
 
-
 Create a Layered Word Cloud from two images/two word sets
 
 ```java
@@ -259,17 +259,17 @@ final Dimension dimension = new Dimension(2000, 2000);
 ParallelLayeredWordCloud parallelLayeredWordCloud = new ParallelLayeredWordCloud(4, dimension, CollisionMode.PIXEL_PERFECT);
 
 // Setup parts for word clouds
-final Normalizer[] NORMALIZERS = new Normalizer[] { 
-    new UpperCaseNormalizer(), 
+final Normalizer[] NORMALIZERS = new Normalizer[] {
+    new UpperCaseNormalizer(),
     new LowerCaseNormalizer(),
     new BubbleTextNormalizer(),
-    new StringToHexNormalizer() 
+    new StringToHexNormalizer()
 };
-final Font[] FONTS = new Font[] { 
-            new Font("Lucida Sans", Font.PLAIN, 10), 
+final Font[] FONTS = new Font[] {
+            new Font("Lucida Sans", Font.PLAIN, 10),
             new Font("Comic Sans", Font.PLAIN, 10),
-            new Font("Yu Gothic Light", Font.PLAIN, 10), 
-            new Font("Meiryo", Font.PLAIN, 10) 
+            new Font("Yu Gothic Light", Font.PLAIN, 10),
+            new Font("Meiryo", Font.PLAIN, 10)
 };
 final List<List<WordFrequency>> listOfWordFrequencies = new ArrayList<>();
 final Point[] positions = new Point][] { new Point(0, 0), new Point(0, 1000), new Point(1000, 0), new Point(1000, 1000) };
@@ -304,7 +304,6 @@ parallelLayeredWordCloud.writeToFile("parallelBubbleText.png");
 
 Refer to JPanelDemo.java for an example integrating into a JPanel.
 
-
 ### Word Frequency File / Analyzer
 
 The most common way to generate word frequencies is to pass a String of text directly to `FrequencyAnalyzer`.
@@ -313,6 +312,7 @@ The `FrequencyAnalyzer` contains many options to process and normalize input tex
 Sometimes the word counts and word frequencies are already known and a consumer would like to load them directly into Kumo.
 To do so, you can manually construct the `List<WordFrequency>` yourself, or you can load in a text file containing the word frequency and word pairs.
 The `FrequencyFileLoader` can be used to load such files. The required format is:
+
 ```
 100: frog
 94: dog
@@ -330,25 +330,23 @@ Order does not matter as the `FrequencyFileLoader` will automatically sort the p
 Tokenizers are the code that splits a sentence/text into a list of words. Currently only two tokenizers are built into Kumo.
 To add your own just create a class that override the `Tokenizer` interface and call the `FrequencyAnalyzer.setTokenizer()` or `FrequencyAnalyzer.addTokenizer()`.
 
-| Tokenizer   |
-|-------------|
+| Tokenizer               |
+| ----------------------- |
 | WhiteSpaceWordTokenizer |
-| ChineseWordTokenizer |
-
+| ChineseWordTokenizer    |
 
 ### Filters
 
-After tokenization, filters are applied to each word to determine whether or not should be omitted from the word list. 
+After tokenization, filters are applied to each word to determine whether or not should be omitted from the word list.
 
 To add set the filter, call `FrequencyAnalyzer.setFilter()` or `FrequencyAnalyzer.addFilter()`
 
-
-| Tokenizer   | Description |
-|-------------|-------------|
-| UrlFilter | A filter to remove words that are urls. |
-| CompositeFilter | A wrapper of a collection of filters. |
-| StopWordFilter | Internally used, the FrequencyAnalyzer makes this filter easy to use via `FrequencyAnalyzer.setStopWords()`. |
-| WordSizeFilter | Internally used, the FrequencyAnalyzer makes this filter easy to use via `FrequencyAnalyzer.setMinWordLength()` and `FrequencyAnalyzer.setMaxWordLength()`. |
+| Tokenizer       | Description                                                                                                                                                 |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| UrlFilter       | A filter to remove words that are urls.                                                                                                                     |
+| CompositeFilter | A wrapper of a collection of filters.                                                                                                                       |
+| StopWordFilter  | Internally used, the FrequencyAnalyzer makes this filter easy to use via `FrequencyAnalyzer.setStopWords()`.                                                |
+| WordSizeFilter  | Internally used, the FrequencyAnalyzer makes this filter easy to use via `FrequencyAnalyzer.setMinWordLength()` and `FrequencyAnalyzer.setMaxWordLength()`. |
 
 ### Normalizers
 
@@ -357,17 +355,16 @@ The default normalizer ia `lowerCase•characterStripping*trimToEmpty(word)`, th
 
 To add set the normalizer, call `FrequencyAnalyzer.setNormalizer()` or `FrequencyAnalyzer.addNormalizer()`
 
-| Normalizers | Description |
-|-------------|-------------|
-| CharacterStrippingNormalizer | Constructed with a Pattern, it will replace all matched occurrences with a configurable 'replaceWith' string. The default pattern is `\\.|:|;|\\(|\\)|\"|,|\\?|,|!|<|>|/`|
-| LowerCaseNormalizer | Converts all text to lowercase. |
-| UpperCaseNormalizer | Converts all text to uppercase. |
-| TrimToEmptyNormalizer | Trims the text down to an empty string, even if null. |
-| UpsideDownNormalizer | Converts A-Z,a-z,0-9 character to an upside-down variant. |
-| StringToHexNormalizer | Converts each character to it's hex value and concatenates them. |
-| DefaultNormalizer | Combines the TrimToEmptyNormalizer, CharacterStrippingNormalizer, and LowerCaseNormalizer. |
-| BubbleTextNormalizer | Replaces A-Z,a-z with characters enclosed in Bubbles ⓐ-ⓩⒶ-Ⓩ (requires a supporting font) |
-
+| Normalizers                  | Description                                                                                                                               |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| CharacterStrippingNormalizer | Constructed with a Pattern, it will replace all matched occurrences with a configurable 'replaceWith' string. The default pattern is `\\. | :   | ;   | \\( | \\) | \"  | ,   | \\? | ,   | !   | <   | >   | /`  |
+| LowerCaseNormalizer          | Converts all text to lowercase.                                                                                                           |
+| UpperCaseNormalizer          | Converts all text to uppercase.                                                                                                           |
+| TrimToEmptyNormalizer        | Trims the text down to an empty string, even if null.                                                                                     |
+| UpsideDownNormalizer         | Converts A-Z,a-z,0-9 character to an upside-down variant.                                                                                 |
+| StringToHexNormalizer        | Converts each character to it's hex value and concatenates them.                                                                          |
+| DefaultNormalizer            | Combines the TrimToEmptyNormalizer, CharacterStrippingNormalizer, and LowerCaseNormalizer.                                                |
+| BubbleTextNormalizer         | Replaces A-Z,a-z with characters enclosed in Bubbles ⓐ-ⓩⒶ-Ⓩ (requires a supporting font)                                                  |
 
 ### Command Line Interface (CLI)
 
@@ -382,58 +379,68 @@ The below examples assume you have the jar installed under the name of "kumo". T
 Examples:
 
 Create a standard word cloud.
+
 ```
 kumo --input "https://en.wikipedia.org/wiki/Nintendo" --output "/tmp/wordcloud.png"
 ```
 
 Create a standard word cloud excluding stop words.
+
 ```
 kumo --input "https://en.wikipedia.org/wiki/Nintendo" --output "/tmp/wordcloud.png" --stop-words "nintendo,the"
 ```
 
 Create a standard word cloud with a limited word count.
+
 ```
 kumo --input "https://en.wikipedia.org/wiki/Nintendo" --output "/tmp/wordcloud.png" --word-count 10
 ```
 
 Create a standard word cloud with a custom width and height.
+
 ```
 kumo --input "https://en.wikipedia.org/wiki/Nintendo" --output "/tmp/wordcloud.png" --width 256 --height 256
 ```
 
 Create a standard word cloud with custom font configuration.
+
 ```
 kumo --input "https://en.wikipedia.org/wiki/Nintendo" --output "/tmp/wordcloud.png" --font-scalar sqrt --font-type Impact --font-weight plain --font-size-min 4 --font-size-max 60
 ```
 
 Create a standard word cloud with a custom shape.
+
 ```
 kumo --input "https://en.wikipedia.org/wiki/Nintendo" --output "/tmp/wordcloud.png" --width 990 --height 618 --background "https://raw.githubusercontent.com/kennycason/kumo/master/src/test/resources/backgrounds/whale.png
 ```
 
 Create a standard word cloud with a custom color palette.
+
 ```
 kumo --input "https://en.wikipedia.org/wiki/Nintendo" --output "/tmp/wordcloud.png" --color "(255,0,0),(0,255,0),(0,0,255)"
 ```
+
 ```
 kumo --input "https://en.wikipedia.org/wiki/Nintendo" --output "/tmp/wordcloud.png" --color "(0xffffff),(0xcccccc),(0x999999),(0x666666),(0x333333)"
 ```
 
 Create a standard word cloud using a Chinese tokenizer
+
 ```
 kumo --input "https://zh.wikipedia.org/wiki/%E4%BB%BB%E5%A4%A9%E5%A0%82" --output "/tmp/wordcloud.png" --tokenizer chinese
 ```
 
 Create a polar word cloud
+
 ```
 kumo --input "https://en.wikipedia.org/wiki/Nintendo,https://en.wikipedia.org/wiki/PlayStation" --output "/tmp/nintendo_vs_playstation.png" --type polar --color "(0x00ff00),(0x00dd00),(0x007700)|(0xff0000),(0xdd0000),(0x770000)"
 ```
 
 Create a layered word cloud
+
 ```
 kumo --input "https://www.haskell.org/, https://en.wikipedia.org/wiki/Haskell_(programming_language)" --output "/tmp/nintendo_vs_playstation.png" --type layered --background "https://raw.githubusercontent.com/kennycason/kumo/master/src/test/resources/backgrounds/haskell_1.bmp,https://raw.githubusercontent.com/kennycason/kumo/master/src/test/resources/backgrounds/haskell_2.bmp" --color "(0xFA6C07),(0xFF7614),(0xFF8936)|(0x080706),(0x3B3029),(0x47362A)"
 ```
-
 
 ### Contributing
 

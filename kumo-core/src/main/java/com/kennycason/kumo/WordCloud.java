@@ -9,6 +9,8 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.os.Looper;
+import android.os.Handler;
 
 import com.kennycason.kumo.bg.Background;
 import com.kennycason.kumo.bg.RectangleBackground;
@@ -55,6 +57,7 @@ public class WordCloud {
     protected final Bitmap bufferedImage;
     protected final Padder padder;
     protected final Set<Word> skipped = new HashSet<>();
+    protected final Set<Word> placed = new HashSet<>();
     protected int padding;
     protected Background background;
     protected int backgroundColor = Color.BLACK;
@@ -64,6 +67,8 @@ public class WordCloud {
     protected RectangleWordPlacer wordPlacer = new RTreeWordPlacer();
     protected ColorPalette colorPalette = new ColorPalette(0xff02B6F2, 0xff37C2F0, 0xff7CCBE6, 0xffC4E7F2, 0xffFFFFFF);
     protected WordStartStrategy wordStartStrategy = new RandomWordStart();
+    protected KumoProgressCallback progressCallback = null;
+    protected Handler mainThreadHandler = null;
     private final String TAG = "WordCloud";
     
     public WordCloud(final Rect dimension, final CollisionMode collisionMode) {
@@ -91,12 +96,17 @@ public class WordCloud {
             final Point point = wordStartStrategy.getStartingPoint(dimension, word);
             final boolean placed = place(word, point);
 
-            if (placed) {
-                Timber.tag(TAG).i("placed: %s (%d/%d)", word.getWord(), currentWord, wordFrequencies.size());
-            } else {
-                Timber.tag(TAG).i("skipped: %s (%s/%d)", word.getWord(), currentWord, wordFrequencies.size());
+            if (!placed) {
                 skipped.add(word);
             }
+
+            if (progressCallback != null && mainThreadHandler != null) {
+                final int currentWordIdx = currentWord - 1;
+                mainThreadHandler.post(
+                    () -> progressCallback.onProgress(currentWordIdx, placed, wordFrequencies.size())
+                );
+            }
+
             currentWord++;
         }
         
@@ -192,6 +202,7 @@ public class WordCloud {
                 if (position.y >= 0 && position.y < dimension.height() && canPlace(word)) {
                     collisionRaster.mask(word.getCollisionRaster(), position);
                     graphics.drawBitmap(word.getBufferedImage(), position.x, position.y, null);
+                    placed.add(word);
                     return true;
                 }
                 
@@ -200,6 +211,7 @@ public class WordCloud {
                 if (offset != 0 && position.y >= 0 && position.y < dimension.height() && canPlace(word)) {
                     collisionRaster.mask(word.getCollisionRaster(), position);
                     graphics.drawBitmap(word.getBufferedImage(), position.x, position.y, null);
+                    placed.add(word);
                     return true;
                 }
             }
@@ -327,7 +339,16 @@ public class WordCloud {
     public Set<Word> getSkipped() {
         return skipped;
     }
-    
+
+    public Set<Word> getPlaced() {
+        return placed;
+    }
+
+    public void setProgressCallback(KumoProgressCallback progressCallback) {
+        this.progressCallback = progressCallback;
+        mainThreadHandler = new Handler(Looper.getMainLooper());
+    }
+
     public void setWordStartStrategy(final WordStartStrategy wordStartStrategy) {
         this.wordStartStrategy = wordStartStrategy;
     }

@@ -3,4 +3,3 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.kennycason.kumo"
     tools:ignore="UnusedAttribute" />
-<!-- todo: revert to com.kennycason.kumo -->

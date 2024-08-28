@@ -1,30 +1,40 @@
 package com.kennycason.kumo;
 
-import android.graphics.Rect;
+import com.kennycason.kumo.compat.KumoGraphicsFactory;
+import com.kennycason.kumo.compat.KumoRect;
 
 import com.kennycason.kumo.exception.KumoException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import timber.log.Timber;
 
 /**
  * A LayeredWordCloud which can process each layer in its own Thread, thus
  * minimizing processing time.
- * 
+ *
  * @author &#64;wolfposd
  */
 public class ParallelLayeredWordCloud extends LayeredWordCloud {
     private final String TAG = "ParallelLayeredWordClou";
 
+    private final Logger logger = Logger.getLogger(TAG);
+
     private final List<Future<?>> executorFutures = new ArrayList<>();
 
     private final ExecutorService executorservice;
 
-    public ParallelLayeredWordCloud(final int layers, final Rect dimension, final CollisionMode collisionMode) {
-        super(layers, dimension, collisionMode);
+    public ParallelLayeredWordCloud(
+            final int layers,
+            final KumoRect dimension,
+            final CollisionMode collisionMode,
+            final KumoGraphicsFactory graphicsFactory
+    ) {
+        super(layers, dimension, collisionMode, graphicsFactory);
+        logger.setLevel(Level.INFO);
         executorservice = Executors.newFixedThreadPool(layers);
     }
 
@@ -32,7 +42,7 @@ public class ParallelLayeredWordCloud extends LayeredWordCloud {
      * constructs the wordcloud specified by layer using the given
      * wordfrequencies.<br>
      * This is a non-blocking call.
-     * 
+     *
      * @param layer
      *            Wordcloud Layer
      * @param wordFrequencies
@@ -41,74 +51,26 @@ public class ParallelLayeredWordCloud extends LayeredWordCloud {
     @Override
     public void build(final int layer, final List<WordFrequency> wordFrequencies) {
         final Future<?> completionFuture = executorservice.submit(() -> {
-            Timber.tag(TAG).i("Starting to build WordCloud Layer %d in new Thread", layer);
+            logger.info("Starting to build WordCloud Layer " + layer + " in new Thread");
             super.build(layer, wordFrequencies);
         });
 
         executorFutures.add(completionFuture);
     }
 
-    /**
-     * Writes the wordcloud to an imagefile.<br>
-     * This is a blocking call.
-     * 
-     * @param outputFileName
-     *            some file like "test.png"
-     */
-    @Override
-    public void writeToFile(final String outputFileName) {
-        writeToFile(outputFileName, true, true);
-    }
-
-    /**
-     * Writes the wordcloud to an imagefile.<br>
-     * Terminates the executor afterwards. See
-     * {@link #writeToFile(String, boolean, boolean)} for a non-terminating call
-     * 
-     * @param outputFileName
-     *            some file like "test.png"
-     * @param blockThread
-     *            should the current thread be blocked
-     */
-    public void writeToFile(final String outputFileName, final boolean blockThread) {
-        this.writeToFile(outputFileName, blockThread, true);
-    }
-
-    /**
-     * Writes the wordcloud to an imagefile.
-     * 
-     * @param outputFileName
-     *            some file like "test.png"
-     * @param blockThread
-     *            should the current thread be blocked
-     * @param shutdownExecutor
-     *            should the executor be shutdown afterwards. if
-     *            <code>false</code> this PLWC can still be used to build other
-     *            layers. if <code>true</code> this will become a blocking
-     *            Thread no matter what was specified in blockThread.
-     */
-    public void writeToFile(final String outputFileName, final boolean blockThread, final boolean shutdownExecutor) {
-        if (blockThread) {
-            waitForFuturesToBlockCurrentThread();
-        }
-        super.writeToFile(outputFileName);
-
-        if (shutdownExecutor) {
-            this.shutdown();
-        }
-    }
-
     private void waitForFuturesToBlockCurrentThread() {
         // we're not shutting down the executor as this would render it
         // non-functional afterwards. this way it can still be used if we
         // plan on building another layer on top of the previous ones
-        Timber.tag(TAG).i("Awaiting Termination of Executors");
+        logger.info("Awaiting Termination of Executors");
+
         for (int i = 0; i < executorFutures.size(); i++) {
             final Future<?> future = executorFutures.get(i);
             try {
                 // cycle through all futures, invoking get() will block
                 // current task until the future can return a result
-                Timber.tag(TAG).i("Performing get on Future:" + (i + 1) + "/" + executorFutures.size());
+
+                logger.info("Performing get on Future:" + (i + 1) + "/" + executorFutures.size());
                 future.get();
 
             } catch (InterruptedException | ExecutionException e) {
@@ -116,7 +78,7 @@ public class ParallelLayeredWordCloud extends LayeredWordCloud {
             }
         }
         executorFutures.clear();
-        Timber.tag(TAG).i("Termination Complete, Processing to File now");
+        logger.info("Termination Complete, Processing to File now");
     }
 
     /**

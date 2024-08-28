@@ -1,8 +1,8 @@
 package com.kennycason.kumo.collide;
 
-import android.graphics.Point;
-import android.graphics.Rect;
+import com.kennycason.kumo.compat.KumoRect;
 
+import com.kennycason.kumo.compat.KumoPoint;
 import com.kennycason.kumo.image.CollisionRaster;
 
 
@@ -11,7 +11,7 @@ import com.kennycason.kumo.image.CollisionRaster;
  */
 public interface Collidable {
     boolean collide(Collidable collidable);
-    Point getPosition();
-    Rect getDimension();
+    KumoPoint getPosition();
+    KumoRect getDimension();
     CollisionRaster getCollisionRaster();
 }

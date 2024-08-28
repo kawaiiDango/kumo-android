@@ -1,7 +1,5 @@
 package com.kennycason.kumo.palette;
 
-import android.graphics.Color;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -102,15 +100,31 @@ public class LinearGradientColorPalette extends ColorPalette {
         for (int i = 1; i < gradientSteps; i++) {
             float ratio = (float) i / (float) gradientSteps;
 
-            final float red = Color.red(color2) * ratio + Color.red(color1) * (1 - ratio);
-            final float green = Color.green(color2) * ratio + Color.green(color1) * (1 - ratio);
-            final float blue = Color.blue(color2) * ratio + Color.blue(color1) * (1 - ratio);
+            final int red = (int) (getRed(color2) * ratio + getRed(color1) * (1 - ratio));
+            final int green = (int) (getGreen(color2) * ratio + getGreen(color1) * (1 - ratio));
+            final int blue = (int) (getBlue(color2) * ratio + getBlue(color1) * (1 - ratio));
 
-            colors.add(Color.rgb(Math.round(red), Math.round(green), Math.round(blue)));
+            colors.add(rgb(red, green, blue));
         }
         // add end color to the gradient
         colors.add(color2);
 
         return colors;
+    }
+
+    private static int getRed(int color) {
+        return (color >> 16) & 0xFF;
+    }
+
+    private static int getGreen(int color) {
+        return (color >> 8) & 0xFF;
+    }
+
+    private static int getBlue(int color) {
+        return color & 0xFF;
+    }
+
+    private static int rgb(int red, int green, int blue) {
+        return 0xff000000 | (red << 16) | (green << 8) | blue;
     }
 }

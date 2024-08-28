@@ -1,9 +1,9 @@
 package com.kennycason.kumo.wordstart;
 
-import android.graphics.Point;
-import android.graphics.Rect;
+import com.kennycason.kumo.compat.KumoRect;
 
 import com.kennycason.kumo.Word;
+import com.kennycason.kumo.compat.KumoPoint;
 
 
 /**
@@ -25,6 +25,6 @@ public interface WordStartStrategy {
      *            the word to be placed
      * @return X/Y starting position
      */
-    Point getStartingPoint(Rect dimension, Word word);
+    KumoPoint getStartingPoint(KumoRect dimension, Word word);
 
 }

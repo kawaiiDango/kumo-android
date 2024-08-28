@@ -1,9 +1,10 @@
 package com.kennycason.kumo.padding;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 
 import com.kennycason.kumo.Word;
+import com.kennycason.kumo.compat.KumoBitmap;
+import com.kennycason.kumo.compat.KumoCanvas;
+import com.kennycason.kumo.compat.KumoGraphicsFactory;
 
 
 /**
@@ -12,16 +13,16 @@ import com.kennycason.kumo.Word;
 public class RectanglePadder implements Padder {
 
     @Override
-    public void pad(final Word word, final int padding) {
+    public void pad(final Word word, final int padding, final KumoGraphicsFactory graphicsFactory) {
         if (padding <= 0) { return; }
 
-        final Bitmap bufferedImage = word.getBufferedImage();
+        final KumoBitmap bufferedImage = word.getBufferedImage();
         final int width = bufferedImage.getWidth() + padding * 2;
         final int height = bufferedImage.getHeight() + padding * 2;
 
-        final Bitmap newBufferedImage = Bitmap.createBitmap(width, height, bufferedImage.getConfig());
-        final Canvas graphics = new Canvas(newBufferedImage);
-        graphics.drawBitmap(bufferedImage, padding, padding, null);
+        final KumoBitmap newBufferedImage = graphicsFactory.createBitmap(width, height);
+        final KumoCanvas graphics = graphicsFactory.createCanvas(newBufferedImage);
+        graphics.drawBitmap(bufferedImage, padding, padding);
 
         bufferedImage.recycle();
         word.setBufferedImage(newBufferedImage);

@@ -3,6 +3,8 @@ package com.kennycason.kumo.image;
 import com.kennycason.kumo.collide.Collidable;
 import com.kennycason.kumo.collide.checkers.CollisionChecker;
 import com.kennycason.kumo.collide.checkers.RectanglePixelCollisionChecker;
+import com.kennycason.kumo.compat.KumoPoint;
+
 import org.junit.Test;
 
 import org.junit.Assert;
@@ -95,22 +97,22 @@ public class CollisionRasterTest {
         }
 
         Assert.assertFalse(checker.collide(
-                collidable(new Point(30, 30), dimension, collisionRasterA),
-                collidable(new Point(30, 30), dimension, collisionRasterB)
+                collidable(new KumoPoint(30, 30), dimension, collisionRasterA),
+                collidable(new KumoPoint(30, 30), dimension, collisionRasterB)
         ));
         
         Assert.assertTrue(checker.collide(
-                collidable(new Point(30, 30), dimension, collisionRasterA),
-                collidable(new Point(20, 20), dimension, collisionRasterB)
+                collidable(new KumoPoint(30, 30), dimension, collisionRasterA),
+                collidable(new KumoPoint(20, 20), dimension, collisionRasterB)
         ));
 
         Assert.assertFalse(checker.collide(
-                collidable(new Point(20, 20), dimension, collisionRasterA),
-                collidable(new Point(30, 30), dimension, collisionRasterB)
+                collidable(new KumoPoint(20, 20), dimension, collisionRasterA),
+                collidable(new KumoPoint(30, 30), dimension, collisionRasterB)
         ));
     }
 
-    Collidable collidable(Point p, Rect d, CollisionRaster r) {
+    Collidable collidable(KumoPoint p, Rect d, CollisionRaster r) {
         return new Collidable() {
             @Override
             public boolean collide(Collidable collidable) {
@@ -118,7 +120,7 @@ public class CollisionRasterTest {
             }
 
             @Override
-            public Point getPosition() {
+            public KumoPoint getPosition() {
                 return p;
             }
 

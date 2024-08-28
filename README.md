@@ -8,11 +8,11 @@ Android port of Kumo.
 implementation "io.github.kawaiidango.kumo-android:kumo-core:$version_see_above"
 ```
 
-- Uses android classes instead of java.awt.\*
+- Uses interfaces instead of hardcoding java.awt.\*
+- The interfaces and the factories can be implemented to use android.graphics.\* instead. See the sample app for details on that.
 - Removed most large dependencies.
 - Methods which relied on large dependencies or are not directly possible on android have been removed.
 - The docs have not been corrected to reflect the new data types.
-- Uses Timber for logging.
 - Added the following methods to WordCloud: getPlaced(), setProgressCallback()
 
 #### Original readme:

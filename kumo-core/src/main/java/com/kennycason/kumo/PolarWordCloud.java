@@ -1,8 +1,9 @@
 package com.kennycason.kumo;
 
-import android.graphics.Point;
-import android.graphics.Rect;
 
+import com.kennycason.kumo.compat.KumoGraphicsFactory;
+import com.kennycason.kumo.compat.KumoPoint;
+import com.kennycason.kumo.compat.KumoRect;
 import com.kennycason.kumo.palette.ColorPalette;
 
 import java.util.Collections;
@@ -24,16 +25,22 @@ public class PolarWordCloud extends WordCloud {
 
     private ColorPalette colorPalette2;
 
-    public PolarWordCloud(final Rect dimension, final CollisionMode collisionMode) {
-        this(dimension, collisionMode, PolarBlendMode.EVEN);
+    public PolarWordCloud(final KumoRect dimension,
+                          final CollisionMode collisionMode,
+                          final KumoGraphicsFactory graphicsFactory
+    ) {
+        this(dimension, collisionMode, PolarBlendMode.EVEN, graphicsFactory);
         this.colorPalette = DEFAULT_POSITIVE_COLORS;
         this.colorPalette2 = DEFAULT_NEGATIVE_COLORS;
     }
 
-    public PolarWordCloud(final Rect dimension,
-                          final CollisionMode collisionMode,
-                          final PolarBlendMode polarBlendMode) {
-        super(dimension, collisionMode);
+    public PolarWordCloud(
+            final KumoRect dimension,
+            final CollisionMode collisionMode,
+            final PolarBlendMode polarBlendMode,
+            final KumoGraphicsFactory graphicsFactory
+    ) {
+        super(dimension, collisionMode, graphicsFactory);
         this.polarBlendMode = polarBlendMode;
         this.colorPalette = DEFAULT_POSITIVE_COLORS;
         this.colorPalette2 = DEFAULT_NEGATIVE_COLORS;
@@ -49,9 +56,9 @@ public class PolarWordCloud extends WordCloud {
         final Iterator<Word> wordIterator = words.iterator();
         final Iterator<Word> wordIterator2 = words2.iterator();
 
-        final Point[] poles = getRandomPoles();
-        final Point pole1 = poles[0];
-        final Point pole2 = poles[1];
+        final KumoPoint[] poles = getRandomPoles();
+        final KumoPoint pole1 = poles[0];
+        final KumoPoint pole2 = poles[1];
         
         // the background masks all none usable pixels and we can only check this raster
         background.mask(backgroundCollidable);
@@ -60,13 +67,13 @@ public class PolarWordCloud extends WordCloud {
 
             if (wordIterator.hasNext()) {
                 final Word word = wordIterator.next();
-                final Point startPosition = getStartPosition(pole1);
+                final KumoPoint startPosition = getStartPosition(pole1);
 
                 place(word, startPosition);
             }
             if (wordIterator2.hasNext()) {
                 final Word word = wordIterator2.next();
-                final Point startPosition = getStartPosition(pole2);
+                final KumoPoint startPosition = getStartPosition(pole2);
 
                 place(word, startPosition);
             }
@@ -75,12 +82,12 @@ public class PolarWordCloud extends WordCloud {
         drawForegroundToBackground();
     }
 
-    private Point getStartPosition(final Point pole) {
+    private KumoPoint getStartPosition(final KumoPoint pole) {
         switch (polarBlendMode) {
             case BLUR:
                 final int blurX = dimension.width() / 2;
                 final int blurY = dimension.height() / 2;
-                return new Point(
+                return new KumoPoint(
                     pole.x + -blurX + RANDOM.nextInt(blurX * 2),
                     pole.y + -blurY + RANDOM.nextInt(blurY * 2)
                 );
@@ -91,8 +98,8 @@ public class PolarWordCloud extends WordCloud {
         throw new IllegalArgumentException("PolarBlendMode must not be null");
     }
 
-    private Point[] getRandomPoles() {
-        final Point[] max = new Point[2];
+    private KumoPoint[] getRandomPoles() {
+        final KumoPoint[] max = new KumoPoint[2];
         double maxDistance = 0.0;
         for (int i = 0; i < 100; i++) {
             final int x = RANDOM.nextInt(dimension.width());
@@ -102,8 +109,8 @@ public class PolarWordCloud extends WordCloud {
             final double distance = Math.sqrt(Math.pow(x - x2, 2) + Math.pow(y - y2, 2));
             if (distance > maxDistance) {
                 maxDistance = distance;
-                max[0] = new Point(x, y);
-                max[1] = new Point(x2, y2);
+                max[0] = new KumoPoint(x, y);
+                max[1] = new KumoPoint(x2, y2);
             }
         }
         return max;

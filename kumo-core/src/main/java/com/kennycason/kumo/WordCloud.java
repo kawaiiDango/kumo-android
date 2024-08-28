@@ -1,16 +1,10 @@
 package com.kennycason.kumo;
 
-import static com.kennycason.kumo.Word.getPaint;
-
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Point;
-import android.graphics.Rect;
-import android.graphics.Typeface;
-import android.os.Looper;
-import android.os.Handler;
+import com.kennycason.kumo.compat.KumoBitmap;
+import com.kennycason.kumo.compat.KumoGraphicsFactory;
+import com.kennycason.kumo.compat.KumoCanvas;
+import com.kennycason.kumo.compat.KumoRect;
+import com.kennycason.kumo.compat.KumoPoint;
 
 import com.kennycason.kumo.bg.Background;
 import com.kennycason.kumo.bg.RectangleBackground;
@@ -18,7 +12,6 @@ import com.kennycason.kumo.collide.RectanglePixelCollidable;
 import com.kennycason.kumo.collide.checkers.CollisionChecker;
 import com.kennycason.kumo.collide.checkers.RectangleCollisionChecker;
 import com.kennycason.kumo.collide.checkers.RectanglePixelCollisionChecker;
-import com.kennycason.kumo.font.KumoFont;
 import com.kennycason.kumo.font.scale.FontScalar;
 import com.kennycason.kumo.font.scale.LinearFontScalar;
 import com.kennycason.kumo.image.AngleGenerator;
@@ -32,16 +25,11 @@ import com.kennycason.kumo.placement.RectangleWordPlacer;
 import com.kennycason.kumo.wordstart.RandomWordStart;
 import com.kennycason.kumo.wordstart.WordStartStrategy;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import timber.log.Timber;
 
 
 /**
@@ -49,37 +37,46 @@ import timber.log.Timber;
  */
 public class WordCloud {
 
-    protected final Rect dimension;
+    protected final KumoRect dimension;
     protected final CollisionMode collisionMode;
     protected final CollisionChecker collisionChecker;
     protected final RectanglePixelCollidable backgroundCollidable;
     protected final CollisionRaster collisionRaster;
-    protected final Bitmap bufferedImage;
+    protected final KumoBitmap bufferedImage;
     protected final Padder padder;
     protected final Set<Word> skipped = new HashSet<>();
     protected final Set<Word> placed = new HashSet<>();
     protected int padding;
     protected Background background;
-    protected int backgroundColor = Color.BLACK;
+    protected int backgroundColor = 0xFF000000; // black
     protected FontScalar fontScalar = new LinearFontScalar(10, 40);
-    protected KumoFont kumoFont = new KumoFont(Typeface.DEFAULT_BOLD);
     protected AngleGenerator angleGenerator = new AngleGenerator();
     protected RectangleWordPlacer wordPlacer = new RTreeWordPlacer();
     protected ColorPalette colorPalette = new ColorPalette(0xff02B6F2, 0xff37C2F0, 0xff7CCBE6, 0xffC4E7F2, 0xffFFFFFF);
     protected WordStartStrategy wordStartStrategy = new RandomWordStart();
     protected KumoProgressCallback progressCallback = null;
-    protected Handler mainThreadHandler = null;
+    protected KumoGraphicsFactory graphicsFactory;
+    private final KumoCanvas fontMetricsCanvas;
+
     private final String TAG = "WordCloud";
     
-    public WordCloud(final Rect dimension, final CollisionMode collisionMode) {
+    public WordCloud(
+            final KumoRect dimension,
+            final CollisionMode collisionMode,
+            final KumoGraphicsFactory graphicsFactory
+    ) {
+        this.graphicsFactory = graphicsFactory;
         this.collisionMode = collisionMode;
         this.padder = derivePadder(collisionMode);
         this.collisionChecker = deriveCollisionChecker(collisionMode);
         this.collisionRaster = new CollisionRaster(dimension);
-        this.bufferedImage = Bitmap.createBitmap(dimension.width(), dimension.height(), Bitmap.Config.ARGB_8888);
-        this.backgroundCollidable = new RectanglePixelCollidable(collisionRaster, new Point(0, 0));
+        this.bufferedImage = graphicsFactory.createBitmap(dimension.width(), dimension.height());
+        this.backgroundCollidable = new RectanglePixelCollidable(collisionRaster, new KumoPoint(0, 0));
         this.dimension = dimension;
         this.background = new RectangleBackground(dimension);
+
+        KumoBitmap onePixel = graphicsFactory.createBitmap(1, 1);
+        fontMetricsCanvas = graphicsFactory.createCanvas(onePixel);
     }
 
     public void build(final List<WordFrequency> wordFrequencies) {
@@ -93,18 +90,16 @@ public class WordCloud {
         
         int currentWord = 1;
         for (final Word word : buildWords(wordFrequencies, this.colorPalette)) {
-            final Point point = wordStartStrategy.getStartingPoint(dimension, word);
+            final KumoPoint point = wordStartStrategy.getStartingPoint(dimension, word);
             final boolean placed = place(word, point);
 
             if (!placed) {
                 skipped.add(word);
             }
 
-            if (progressCallback != null && mainThreadHandler != null) {
+            if (progressCallback != null) {
                 final int currentWordIdx = currentWord - 1;
-                mainThreadHandler.post(
-                    () -> progressCallback.onProgress(currentWordIdx, placed, wordFrequencies.size())
-                );
+                progressCallback.onProgress(currentWordIdx, placed, wordFrequencies.size());
             }
 
             currentWord++;
@@ -113,54 +108,22 @@ public class WordCloud {
         drawForegroundToBackground();
     }
 
-    public void writeToFile(final String outputFileName) throws IOException {
-        Timber.tag(TAG).i("Saving WordCloud to: %s", outputFileName);
-        FileOutputStream fos = new FileOutputStream(outputFileName);
-        bufferedImage.compress(Bitmap.CompressFormat.PNG, 100, fos);
-        fos.close();
-    }
-
-    /**
-     * Write to output stream as PNG
-     *
-     * @param outputStream the output stream to write the image data to
-     */
-    public void writeToStreamAsPNG(final OutputStream outputStream) {
-        writeToStream(Bitmap.CompressFormat.PNG, outputStream);
-    }
-
-    /**
-     * Write wordcloud image data to stream in the given format
-     *
-     * @param format       the image format
-     * @param outputStream the output stream to write image data to
-     */
-    public void writeToStream(final Bitmap.CompressFormat format, final OutputStream outputStream) {
-        Timber.tag(TAG).d("Writing WordCloud image data to output stream");
-        boolean success = bufferedImage.compress(format, 100, outputStream);
-        if (success)
-            Timber.tag(TAG).d("Done writing WordCloud image data to output stream");
-        else
-            Timber.tag(TAG).d("Failed to write WordCloud image data to output stream");
-
-    }
-
     /**
      * create background, then draw current word cloud on top of it.
      * Doing it this way preserves the transparency of the this.bufferedImage's pixels
      * for a more flexible pixel perfect collision
      */
     protected void drawForegroundToBackground() {
-        final Bitmap backgroundBufferedImage = Bitmap.createBitmap(dimension.width(), dimension.height(), this.bufferedImage.getConfig());
-        final Canvas graphics = new Canvas(backgroundBufferedImage);
+        final KumoBitmap backgroundBufferedImage = graphicsFactory.createBitmap(dimension.width(), dimension.height());
+        final KumoCanvas graphics = graphicsFactory.createCanvas(backgroundBufferedImage);
 
         // draw current color
         graphics.drawColor(backgroundColor);
-        graphics.drawBitmap(bufferedImage, 0, 0, null);
+        graphics.drawBitmap(bufferedImage, 0, 0);
 
         // draw back to original
-        final Canvas graphics2 = new Canvas(bufferedImage);
-        graphics2.drawBitmap(backgroundBufferedImage, 0, 0, null);
+        final KumoCanvas graphics2 = graphicsFactory.createCanvas(bufferedImage);
+        graphics2.drawBitmap(backgroundBufferedImage, 0, 0);
 
         backgroundBufferedImage.recycle();
     }
@@ -172,7 +135,7 @@ public class WordCloud {
      * @param start the center of the spiral
      * @return the maximum usefull radius
      */
-    static int computeRadius(final Rect dimension, final Point start) {
+    static int computeRadius(final KumoRect dimension, final KumoPoint start) {
         final int maxDistanceX = Math.max(start.x, dimension.width() - start.x) + 1;
         final int maxDistanceY = Math.max(start.y, dimension.height() - start.y) + 1;
         
@@ -185,11 +148,11 @@ public class WordCloud {
      * @param word the word being placed
      * @param start the place to start trying to place the word
      */
-    protected boolean place(final Word word, final Point start) {
-        final Canvas graphics = new Canvas(this.bufferedImage);
+    protected boolean place(final Word word, final KumoPoint start) {
+        final KumoCanvas graphics = graphicsFactory.createCanvas(this.bufferedImage);
 
         final int maxRadius = computeRadius(dimension, start);
-        final Point position = word.getPosition();
+        final KumoPoint position = word.getPosition();
         
         for (int r = 0; r < maxRadius; r += 2) {
             for (int x = Math.max(-start.x, -r); x <= Math.min(r, dimension.width() - start.x - 1); x++) {
@@ -201,7 +164,7 @@ public class WordCloud {
                 position.y = start.y + offset;
                 if (position.y >= 0 && position.y < dimension.height() && canPlace(word)) {
                     collisionRaster.mask(word.getCollisionRaster(), position);
-                    graphics.drawBitmap(word.getBufferedImage(), position.x, position.y, null);
+                    graphics.drawBitmap(word.getBufferedImage(), position.x, position.y);
                     placed.add(word);
                     return true;
                 }
@@ -210,7 +173,7 @@ public class WordCloud {
                 position.y = start.y - offset;
                 if (offset != 0 && position.y >= 0 && position.y < dimension.height() && canPlace(word)) {
                     collisionRaster.mask(word.getCollisionRaster(), position);
-                    graphics.drawBitmap(word.getBufferedImage(), position.x, position.y, null);
+                    graphics.drawBitmap(word.getBufferedImage(), position.x, position.y);
                     placed.add(word);
                     return true;
                 }
@@ -221,8 +184,8 @@ public class WordCloud {
     }
 
     private boolean canPlace(final Word word) {
-        final Point position = word.getPosition();
-        final Rect dimensionOfWord = word.getDimension();
+        final KumoPoint position = word.getPosition();
+        final KumoRect dimensionOfWord = word.getDimension();
         
         // are we inside the background?
         if (position.y < 0 || position.y + dimensionOfWord.height() > dimension.height()) {
@@ -257,19 +220,20 @@ public class WordCloud {
     private Word buildWord(final WordFrequency wordFrequency, final int maxFrequency, final ColorPalette colorPalette) {
         final int frequency = wordFrequency.getFrequency();
         final float fontHeight = this.fontScalar.scale(frequency, maxFrequency);
-        final Typeface typeface = (wordFrequency.hasFont() ? wordFrequency.getFont() : kumoFont).getFont();
-        final Paint paint = getPaint();
-        paint.setTypeface(typeface);
-        paint.setTextSize(fontHeight);
+        fontMetricsCanvas.setTextSize(fontHeight);
 
         final double theta = angleGenerator.randomNext();
         final Word word = new Word(
-                wordFrequency.getWord(), colorPalette.next(),
-                paint, this.collisionChecker, theta
+                wordFrequency.getWord(),
+                colorPalette.next(),
+                fontMetricsCanvas,
+                this.collisionChecker,
+                this.graphicsFactory,
+                theta
         );
        
         if (padding > 0) {
-            padder.pad(word, padding);
+            padder.pad(word, padding, graphicsFactory);
         }
         return word;
     }
@@ -320,19 +284,11 @@ public class WordCloud {
         this.fontScalar = fontScalar;
     }
 
-    public void setKumoFont(final KumoFont kumoFont) {
-        this.kumoFont = kumoFont;
-    }
-
     public void setAngleGenerator(final AngleGenerator angleGenerator) {
         this.angleGenerator = angleGenerator;
     }
 
-    public Bitmap getBufferedImage() {
-        return bufferedImage;
-    }
-
-    public Bitmap getBitmap() {
+    public KumoBitmap getBufferedImage() {
         return bufferedImage;
     }
 
@@ -346,7 +302,6 @@ public class WordCloud {
 
     public void setProgressCallback(KumoProgressCallback progressCallback) {
         this.progressCallback = progressCallback;
-        mainThreadHandler = new Handler(Looper.getMainLooper());
     }
 
     public void setWordStartStrategy(final WordStartStrategy wordStartStrategy) {

@@ -1,8 +1,9 @@
 package com.kennycason.kumo.image;
 
-import android.graphics.Bitmap;
-import android.graphics.Point;
-import android.graphics.Rect;
+import com.kennycason.kumo.compat.KumoBitmap;
+import com.kennycason.kumo.compat.KumoRect;
+
+import com.kennycason.kumo.compat.KumoPoint;
 
 import java.util.BitSet;
 
@@ -12,14 +13,20 @@ import java.util.BitSet;
 public class CollisionRaster {
 
     private final BitSet data;
-    private final Rect dimension;
+    private final KumoRect dimension;
 
-    public CollisionRaster(final Bitmap bufferedImage) {
-        this(new Rect(0, 0, bufferedImage.getWidth(), bufferedImage.getHeight()));
+    public CollisionRaster(final KumoBitmap bufferedImage) {
+        this(new KumoRect(bufferedImage.getWidth(), bufferedImage.getHeight()));
 
-        for (int y = 0; y < dimension.height(); y++) {
-            for (int x = 0; x < dimension.width(); x++) {
-                final boolean pixelIsTransparent = (bufferedImage.getPixel(x, y) & 0xFF000000) == 0x00000000;
+        int width = dimension.width();
+        int height = dimension.height();
+        int[] pixels = new int[width * height];
+        bufferedImage.getPixels(pixels, 0, width, 0, 0, width, height);
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                int pixel = pixels[y * width + x];
+                final boolean pixelIsTransparent = (pixel & 0xFF000000) == 0x00000000;
 
                 if (!pixelIsTransparent) {
                     setPixelIsNotTransparent(x, y);
@@ -28,7 +35,7 @@ public class CollisionRaster {
         }
     }
 
-    public CollisionRaster(final Rect dimension) {
+    public CollisionRaster(final KumoRect dimension) {
         this.dimension = dimension;
 
         data = new BitSet(dimension.width() * dimension.height());
@@ -53,7 +60,7 @@ public class CollisionRaster {
         data.set(computeIndex(x, y));
     }
 
-    public void mask(final CollisionRaster collisionRaster, final Point point) {
+    public void mask(final CollisionRaster collisionRaster, final KumoPoint point) {
         final int maxHeight = Math.min(point.y + collisionRaster.getDimension().height(), dimension.height());
         final int maxWidth = Math.min(point.x + collisionRaster.getDimension().width(), dimension.width());
         
@@ -92,7 +99,7 @@ public class CollisionRaster {
         return !data.get(computeIndex(x, y));
     }
 
-    public Rect getDimension() {
+    public KumoRect getDimension() {
         return dimension;
     }
     

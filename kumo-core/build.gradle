@@ -1,59 +1,174 @@
 plugins {
-    id 'com.android.library'
+    id 'java-library'
+    id "maven-publish"
+    id "signing"
+    id "org.jetbrains.dokka"
 }
 
 ext {
     // Provide your own coordinates here
     PUBLISH_GROUP_ID = 'io.github.kawaiidango.kumo-android'
-    PUBLISH_VERSION = '1.28.1'
+    PUBLISH_VERSION = '1.28.3'
     PUBLISH_ARTIFACT_ID = 'kumo-core'
 }
 
-apply from: "${rootProject.projectDir}/script/publish-module.gradle"
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 
-android {
-    compileSdk 32
-
-    defaultConfig {
-        minSdk 21
-        targetSdk 32
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
-    }
-
-    lintOptions {
-        textOutput "stdout"
-        checkAllWarnings true
-        warningsAsErrors true
-        disable "UnusedResources"              // Unused will be removed on release
-        disable "IconExpectedSize"             // Using the material icons provided from Google
-        disable "GoogleAppIndexingApiWarning"  // We might want to index our app later
-        disable "ResourceType"                 // Annotation binding
-        disable "GradleDependency"
-        disable "NewerVersionAvailable"
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-
-        coreLibraryDesugaringEnabled true
-    }
+    withJavadocJar()
+    withSourcesJar()
 }
 
+//components.java.withVariantsFromConfiguration(configurations.sourcesElements) {
+//    skip()
+//}
+
+//android {
+//    namespace "com.kennycason.kumo"
+//
+//    compileSdk 35
+//
+//    defaultConfig {
+//        minSdk 21
+//        targetSdk 35
+//
+//        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+//        consumerProguardFiles "consumer-rules.pro"
+//    }
+//
+//    lintOptions {
+//        textOutput "stdout"
+//        checkAllWarnings true
+//        warningsAsErrors true
+//        disable "UnusedResources"              // Unused will be removed on release
+//        disable "IconExpectedSize"             // Using the material icons provided from Google
+//        disable "GoogleAppIndexingApiWarning"  // We might want to index our app later
+//        disable "ResourceType"                 // Annotation binding
+//        disable "GradleDependency"
+//        disable "NewerVersionAvailable"
+//    }
+//
+//    compileOptions {
+//        sourceCompatibility JavaVersion.VERSION_11
+//        targetCompatibility JavaVersion.VERSION_11
+//
+////        coreLibraryDesugaringEnabled true
+//    }
+//
+//    publishing {
+//        singleVariant('release') {
+//            withSourcesJar()
+//            withJavadocJar()
+//        }
+//        // ...
+//    }
+//}
+
 dependencies {
-    implementation "com.github.davidmoten:rtree:0.9"
+    implementation 'com.github.davidmoten:rtree:0.12'
 //    implementation project(":kumo-api")
     implementation "com.kennycason:kumo-api:1.28"
-    implementation 'com.jakewharton.timber:timber:5.0.1'
 
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
+//    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.0'
 
     testImplementation "junit:junit:4.13.2"
-    androidTestImplementation "org.slf4j:slf4j-api:1.7.36"
-    androidTestImplementation "org.jsoup:jsoup:1.14.3"
+    testImplementation 'org.slf4j:slf4j-api:2.0.16'
+    testImplementation 'org.jsoup:jsoup:1.18.1'
+}
 
-    androidTestImplementation 'androidx.test:runner:1.4.0'
-    androidTestImplementation 'androidx.test:rules:1.4.0'
+//tasks.register('androidSourcesJar', Jar) {
+//    archiveClassifier.set('sources')
+//    if (project.plugins.findPlugin("com.android.library")) {
+//        // For Android libraries
+//        from android.sourceSets.main.java.srcDirs
+////        from android.sourceSets.main.kotlin.srcDirs
+//    } else {
+//        // For pure Kotlin libraries, in case you have them
+//        from sourceSets.main.java.srcDirs
+////        from sourceSets.main.kotlin.srcDirs
+//    }
+//}
+
+//tasks.register('javadocJar', Jar) {
+//    dependsOn dokkaJavadoc
+//    archiveClassifier.set('javadoc')
+//    from dokkaJavadoc.outputDirectory
+//}
+
+//artifacts {
+//    archives androidSourcesJar
+//}
+
+group = PUBLISH_GROUP_ID
+version = PUBLISH_VERSION
+
+afterEvaluate {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+
+                // The coordinates of the library, being set from variables that
+                // we'll set up later
+                groupId PUBLISH_GROUP_ID
+                artifactId PUBLISH_ARTIFACT_ID
+                version PUBLISH_VERSION
+
+                // Two artifacts, the `aar` (or `jar`) and the sources
+                from(components.java)
+
+//                artifact(androidSourcesJar) {
+//                    classifier = 'sources'
+//                }
+//
+//                artifact(javadocJar) {
+//                    classifier = 'javadoc'
+//                }
+
+                // Mostly self-explanatory metadata
+                pom {
+                    name = PUBLISH_ARTIFACT_ID
+                    description = 'Android port of Kumo, a word cloud generator.'
+                    url = 'https://github.com/kawaiiDango/kumo-android'
+                    licenses {
+                        license {
+                            name = 'MIT'
+                            url = 'https://www.mit.edu/~amini/LICENSE.md'
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = 'kawaiiDango'
+                            name = 'Kawaii Dango'
+                        }
+                        // Add all other devs here...
+                    }
+
+                    // Version control info - if you're using GitHub, follow the
+                    // format as seen here
+                    scm {
+                        connection = 'scm:git:github.com:kawaiiDango/kumo-android.git'
+                        developerConnection = 'scm:git:ssh://github.com:kawaiiDango/kumo-android.git'
+                        url = 'https://github.com:kawaiiDango/kumo-android'
+                    }
+                }
+
+            }
+        }
+    }
+}
+signing {
+    ///
+    File secretPropsFile = project.rootProject.file('local.properties')
+    // Read local.properties file first if it exists
+    Properties p = new Properties()
+    new FileInputStream(secretPropsFile).withCloseable { is -> p.load(is) }
+    p.each { name, value -> ext[name] = value }
+
+    useInMemoryPgpKeys(
+            ext["signing.keyId"],
+            ext["signing.key"],
+            ext["signing.password"],
+    )
+    sign publishing.publications
 }

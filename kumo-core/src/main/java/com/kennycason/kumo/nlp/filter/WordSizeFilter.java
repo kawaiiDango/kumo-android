@@ -1,7 +1,6 @@
 package com.kennycason.kumo.nlp.filter;
 
 
-import android.text.TextUtils;
 
 /**
  * Created by kenny
@@ -19,7 +18,7 @@ public class WordSizeFilter extends Filter {
 
     @Override
     public boolean test(final String word) {
-        return !TextUtils.isEmpty(word.trim())
+        return !word.trim().isEmpty()
                 && word.length() >= minLength
                 && word.length() < maxLength;
     }

@@ -1,8 +1,8 @@
 package com.kennycason.kumo.collide.checkers;
 
-import android.graphics.Point;
 
 import com.kennycason.kumo.collide.Collidable;
+import com.kennycason.kumo.compat.KumoPoint;
 import com.kennycason.kumo.image.CollisionRaster;
 
 
@@ -30,8 +30,8 @@ public class RectanglePixelCollisionChecker implements CollisionChecker {
             return false;
         }
 
-        final Point position = collidable.getPosition();
-        final Point position2 = collidable2.getPosition();
+        final KumoPoint position = collidable.getPosition();
+        final KumoPoint position2 = collidable2.getPosition();
         final CollisionRaster collisionRaster = collidable.getCollisionRaster();
         final CollisionRaster collisionRaster2 = collidable2.getCollisionRaster();
 

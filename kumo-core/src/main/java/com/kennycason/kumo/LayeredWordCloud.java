@@ -1,26 +1,21 @@
 package com.kennycason.kumo;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Rect;
 
 import com.kennycason.kumo.bg.Background;
-import com.kennycason.kumo.exception.KumoException;
-import com.kennycason.kumo.font.KumoFont;
+import com.kennycason.kumo.compat.KumoBitmap;
+import com.kennycason.kumo.compat.KumoGraphicsFactory;
+import com.kennycason.kumo.compat.KumoCanvas;
+import com.kennycason.kumo.compat.KumoRect;
 import com.kennycason.kumo.font.scale.FontScalar;
 import com.kennycason.kumo.image.AngleGenerator;
 import com.kennycason.kumo.palette.ColorPalette;
 import com.kennycason.kumo.placement.RectangleWordPlacer;
 import com.kennycason.kumo.wordstart.WordStartStrategy;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import timber.log.Timber;
 
 /**
  * Created by kenny on 7/5/14.
@@ -28,18 +23,24 @@ import timber.log.Timber;
 public class LayeredWordCloud {
     private final String TAG = "LayeredWordCloud";
 
-    private final Rect dimension;
+    private final KumoRect dimension;
 
     private final List<WordCloud> wordClouds = new ArrayList<>();
 
-    private int backgroundColor = Color.BLACK;
+    private int backgroundColor = 0xFF000000; // black
 
-    public LayeredWordCloud(final int layers, final Rect dimension, final CollisionMode collisionMode) {
+    public LayeredWordCloud(
+            final int layers,
+            final KumoRect dimension,
+            final CollisionMode collisionMode,
+            final KumoGraphicsFactory graphicsFactory
+
+    ) {
         this.dimension = dimension;
 
         for (int i = 0; i < layers; i++) {
-            final WordCloud wordCloud = new WordCloud(dimension, collisionMode);
-            wordCloud.setBackgroundColor(Color.TRANSPARENT);
+            final WordCloud wordCloud = new WordCloud(dimension, collisionMode, graphicsFactory);
+            wordCloud.setBackgroundColor(0); // transparent
             wordClouds.add(wordCloud);
         }
     }
@@ -64,10 +65,6 @@ public class LayeredWordCloud {
         this.wordClouds.get(layer).setFontScalar(fontScalar);
     }
 
-    public void setKumoFont(final int layer, final KumoFont kumoFont) {
-        this.wordClouds.get(layer).setKumoFont(kumoFont);
-    }
-
     public void setAngleGenerator(final int layer, final AngleGenerator angleGenerator) {
         this.wordClouds.get(layer).setAngleGenerator(angleGenerator);
     }
@@ -80,22 +77,24 @@ public class LayeredWordCloud {
         this.backgroundColor = backgroundColor;
     }
 
-    public Bitmap getBufferedImage() {
-        final Bitmap bufferedImage = Bitmap.createBitmap(dimension.width(), dimension.height(), Bitmap.Config.ARGB_8888);
-        final Canvas graphics = new Canvas(bufferedImage);
+    public KumoBitmap getBufferedImage() {
+        WordCloud wordCloud0 = wordClouds.get(0);
+
+        final KumoBitmap bufferedImage = wordCloud0.graphicsFactory.createBitmap(dimension.width(), dimension.height());
+        final KumoCanvas graphics = wordCloud0.graphicsFactory.createCanvas(bufferedImage);
         graphics.drawColor(backgroundColor);
 
         for (final WordCloud wordCloud : wordClouds) {
-            graphics.drawBitmap(wordCloud.getBufferedImage(), 0, 0, null);
+            graphics.drawBitmap(wordCloud.getBufferedImage(), 0, 0);
         }
 
         return bufferedImage;
     }
-    
+
     public WordCloud getLayer(final int layer) {
         return wordClouds.get(layer);
     }
-    
+
     public WordCloud getAt(final int layer) {
         return getLayer(layer);
     }
@@ -104,25 +103,10 @@ public class LayeredWordCloud {
         return wordClouds.get(layer).getSkipped();
     }
 
-    public void writeToFile(final String outputFileName) {
-        String extension = "";
-        final int i = outputFileName.lastIndexOf('.');
-        if (i > 0) {
-            extension = outputFileName.substring(i + 1);
-        }
-        try {
-            Timber.tag(TAG).i("Saving Layered WordCloud to: %s", outputFileName);
-            getBufferedImage().compress(Bitmap.CompressFormat.PNG, 100, new FileOutputStream(outputFileName));
-
-        } catch (final IOException e) {
-            throw new KumoException(e);
-        }
-    }
-    
     public void setWordStartStrategy(final int layer, final WordStartStrategy scheme) {
         wordClouds.get(layer).setWordStartStrategy(scheme);
     }
-    
+
     public int getLayers() {
         return wordClouds.size();
     }

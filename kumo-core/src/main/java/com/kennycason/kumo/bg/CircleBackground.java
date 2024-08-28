@@ -1,10 +1,9 @@
 package com.kennycason.kumo.bg;
 
-import android.graphics.Point;
-import android.graphics.Rect;
+import com.kennycason.kumo.compat.KumoRect;
 
-import com.kennycason.kumo.collide.Collidable;
 import com.kennycason.kumo.collide.RectanglePixelCollidable;
+import com.kennycason.kumo.compat.KumoPoint;
 import com.kennycason.kumo.image.CollisionRaster;
 
 
@@ -15,16 +14,16 @@ public class CircleBackground implements Background {
 
     private final int radius;
 
-    private final Point position;
+    private final KumoPoint position;
 
     public CircleBackground(final int radius) {
         this.radius = radius;
-        this.position = new Point(0, 0);
+        this.position = new KumoPoint(0, 0);
     }
     
     @Override
     public void mask(RectanglePixelCollidable background) {
-        Rect dimensionOfBackground = background.getDimension();
+        KumoRect dimensionOfBackground = background.getDimension();
         CollisionRaster rasterOfBackground = background.getCollisionRaster();
         
         for (int y = 0; y < dimensionOfBackground.height(); y++) {

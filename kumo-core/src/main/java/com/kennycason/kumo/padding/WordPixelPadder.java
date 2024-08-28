@@ -1,6 +1,7 @@
 package com.kennycason.kumo.padding;
 
 import com.kennycason.kumo.Word;
+import com.kennycason.kumo.compat.KumoGraphicsFactory;
 import com.kennycason.kumo.image.CollisionRaster;
 
 /**
@@ -11,11 +12,11 @@ public class WordPixelPadder implements Padder {
 
     private RectanglePadder rectanglePadder = new RectanglePadder();
 
-    public void pad(final Word word, final int padding) {
+    public void pad(final Word word, final int padding, final KumoGraphicsFactory graphicsFactory) {
         if (padding <= 0) {
             return;
         }
-        rectanglePadder.pad(word, padding);
+        rectanglePadder.pad(word, padding, graphicsFactory);
 
         final CollisionRaster collisionRaster = word.getCollisionRaster();
         // create a copy of the original raster

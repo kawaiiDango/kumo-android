@@ -1,7 +1,9 @@
 package com.kennycason.kumo.image;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
+
+import com.kennycason.kumo.compat.KumoBitmap;
+import com.kennycason.kumo.compat.KumoGraphicsFactory;
+import com.kennycason.kumo.compat.KumoCanvas;
 
 /**
  * Created by kenny on 6/29/14.
@@ -10,15 +12,11 @@ public class ImageRotation {
 
     private ImageRotation() {}
 
-    public static Bitmap rotate90(final Bitmap bufferedImage) {
-        return rotate(bufferedImage, Math.toRadians(90));
-    }
-
-    public static Bitmap rotateMinus90(final Bitmap bufferedImage) {
-        return rotate(bufferedImage, Math.toRadians(-90));
-    }
-
-    public static Bitmap rotate(final Bitmap bufferedImage, final double theta) {
+    public static KumoBitmap rotate(
+            final KumoBitmap bufferedImage,
+            KumoGraphicsFactory graphicsFactory,
+            final double theta
+    ) {
         if (theta == 0.0) { return bufferedImage; }
 
         final double sin = Math.abs(Math.sin(theta));
@@ -28,12 +26,12 @@ public class ImageRotation {
         final float newWeight = (float) Math.floor(weight * cos + height * sin);
         final float newHeight = (float) Math.floor(height * cos + weight * sin);
 
-        final Bitmap result = Bitmap.createBitmap((int)newWeight, (int)newHeight, bufferedImage.getConfig());
-        final Canvas graphics = new Canvas(result);
+        final KumoBitmap result = graphicsFactory.createBitmap((int)newWeight, (int)newHeight);
+        final KumoCanvas graphics = graphicsFactory.createCanvas(result);
 
         graphics.rotate((float)Math.toDegrees(theta), newWeight / 2, newHeight / 2);
-        graphics.translate((newWeight - weight) / 2, (newHeight - height) / 2);
-        graphics.drawBitmap(bufferedImage, 0, 0, null);
+        graphics.translate((int) ((newWeight - weight) / 2), (int) ((newHeight - height) / 2));
+        graphics.drawBitmap(bufferedImage, 0, 0);
 
         bufferedImage.recycle();
 

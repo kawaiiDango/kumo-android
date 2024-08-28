@@ -1,8 +1,8 @@
 package com.kennycason.kumo.collide.checkers;
 
-import android.graphics.Point;
 
 import com.kennycason.kumo.collide.Collidable;
+import com.kennycason.kumo.compat.KumoPoint;
 
 
 /**
@@ -12,8 +12,8 @@ public class RectangleCollisionChecker implements CollisionChecker {
 
     @Override
     public boolean collide(final Collidable collidable, final Collidable collidable2) {
-        final Point position = collidable.getPosition();
-        final Point position2 = collidable2.getPosition();
+        final KumoPoint position = collidable.getPosition();
+        final KumoPoint position2 = collidable2.getPosition();
 
         if ((position.x + collidable.getDimension().width() < position2.x)
                 || (position2.x + collidable2.getDimension().width() < position.x)) {

@@ -25,3 +25,6 @@ kumo-core/output_test/*bmp
 .externalNativeBuild
 .cxx
 local.properties
+**/build/
+xcuserdata
+!src/**/build/

@@ -16,23 +16,24 @@ rtree = "0.12"
 slf4jApi = "2.0.16"
 nexus = "2.0.0"
 dokka = "1.9.20"
-appcompat = "1.7.0"
-constraintlayout = "2.1.4"
 languageEn = "6.4"
-material = "1.12.0"
+androidx-activityCompose = "1.9.1"
+androidx-lifecycle = "2.8.0"
+compose-plugin = "1.6.11"
+kotlinx-coroutines = "1.8.1"
 
 [libraries]
-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
-constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 junit = { module = "junit:junit", version.ref = "junit" }
 kumo-api = { module = "com.kennycason:kumo-api", version.ref = "kumoApi" }
 language-en = { module = "org.languagetool:language-en", version.ref = "languageEn" }
 language-zh = { module = "org.languagetool:language-zh", version.ref = "languageEn" }
-material = { module = "com.google.android.material:material", version.ref = "material" }
 rtree = { module = "com.github.davidmoten:rtree", version.ref = "rtree" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4jApi" }
-
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
+androidx-lifecycle-viewmodel = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-runtime-compose = { group = "org.jetbrains.androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
+kotlinx-coroutines-swing = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android-application" }
@@ -40,3 +41,6 @@ android-library = { id = "com.android.library", version.ref = "android-applicati
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

@@ -1,0 +1,42 @@
+[versions]
+
+targetSdk = "35"
+minSdk = "23"
+android-application = "8.7.0-alpha08"
+kotlin = "2.0.20"
+
+publish-group-id = "io.github.kawaiidango.kumo-android"
+publish-version = "1.28.3"
+publish-artifact-id = "kumo-core"
+
+jsoup = "1.18.1"
+junit = "4.13.2"
+kumoApi = "1.28"
+rtree = "0.12"
+slf4jApi = "2.0.16"
+nexus = "2.0.0"
+dokka = "1.9.20"
+appcompat = "1.7.0"
+constraintlayout = "2.1.4"
+languageEn = "6.4"
+material = "1.12.0"
+
+[libraries]
+appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+constraintlayout = { module = "androidx.constraintlayout:constraintlayout", version.ref = "constraintlayout" }
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
+junit = { module = "junit:junit", version.ref = "junit" }
+kumo-api = { module = "com.kennycason:kumo-api", version.ref = "kumoApi" }
+language-en = { module = "org.languagetool:language-en", version.ref = "languageEn" }
+language-zh = { module = "org.languagetool:language-zh", version.ref = "languageEn" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+rtree = { module = "com.github.davidmoten:rtree", version.ref = "rtree" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4jApi" }
+
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "android-application" }
+android-library = { id = "com.android.library", version.ref = "android-application" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+nexus-publish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexus" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

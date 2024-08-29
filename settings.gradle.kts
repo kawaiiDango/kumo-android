@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "kumo-android"
-include ':sample'
-include ':kumo-core'
-include ':kumo-api'
-include ':kumo-tokenizers'
+include(":sample")
+include(":kumo-core")
+include(":kumo-api")
+include(":kumo-tokenizers")
